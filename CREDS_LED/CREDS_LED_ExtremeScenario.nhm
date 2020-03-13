@@ -1,0 +1,742 @@
+(scenario
+    start-date: 2020
+    end-date: 2050
+    stock-id: /Labour2030/default-england-ehcs-2012.stock
+    ;; scenario goes here:
+    energy-calculator: BREDEM2012
+
+        ;; Climate Change manifests itself in UKTM as a 0.03C annual temperature rise, across the months
+        ; should be a more elegant way of doing this
+
+              (context.weather 
+               (weather.case 
+                (when (sim.year-is exactly: 2020)
+                   (weather.perturb
+                    offset-temperature: 0.03 #climate-change-weather))
+                (when (sim.year-is exactly: 2021)
+                   (weather.perturb
+                    offset-temperature: 0.06 #climate-change-weather))
+                (when (sim.year-is exactly: 2022)
+                   (weather.perturb
+                    offset-temperature: 0.09 #climate-change-weather))
+                (when (sim.year-is exactly: 2023)
+                   (weather.perturb
+                    offset-temperature: 0.12 #climate-change-weather))
+                (when (sim.year-is exactly: 2024)
+                   (weather.perturb
+                    offset-temperature: 0.15 #climate-change-weather))
+                (when (sim.year-is exactly: 2025)
+                   (weather.perturb
+                    offset-temperature: 0.18 #climate-change-weather))
+                (when (sim.year-is exactly: 2026)
+                   (weather.perturb
+                    offset-temperature: 0.21 #climate-change-weather))
+                (when (sim.year-is exactly: 2027)
+                   (weather.perturb
+                    offset-temperature: 0.24 #climate-change-weather))
+                (when (sim.year-is exactly: 2028)
+                   (weather.perturb
+                    offset-temperature: 0.27 #climate-change-weather))
+                (when (sim.year-is exactly: 2029)
+                   (weather.perturb
+                    offset-temperature: 0.30 #climate-change-weather))
+                (when (sim.year-is exactly: 2030)
+                   (weather.perturb
+                    offset-temperature: 0.33 #climate-change-weather))
+                (when (sim.year-is exactly: 2031)
+                   (weather.perturb
+                    offset-temperature: 0.36 #climate-change-weather))
+                (when (sim.year-is exactly: 2032)
+                   (weather.perturb
+                    offset-temperature: 0.39 #climate-change-weather))
+                (when (sim.year-is exactly: 2033)
+                   (weather.perturb
+                    offset-temperature: 0.42 #climate-change-weather))
+                (when (sim.year-is exactly: 2034)
+                   (weather.perturb
+                    offset-temperature: 0.45 #climate-change-weather))
+                (when (sim.year-is exactly: 2035)
+                   (weather.perturb
+                    offset-temperature: 0.48 #climate-change-weather))
+                (when (sim.year-is exactly: 2036)
+                   (weather.perturb
+                    offset-temperature: 0.51 #climate-change-weather))
+                (when (sim.year-is exactly: 2037)
+                   (weather.perturb
+                    offset-temperature: 0.54 #climate-change-weather))
+                (when (sim.year-is exactly: 2038)
+                   (weather.perturb
+                    offset-temperature: 0.57 #climate-change-weather))
+                (when (sim.year-is exactly: 2039)
+                   (weather.perturb
+                    offset-temperature: 0.60 #climate-change-weather))
+                (when (sim.year-is exactly: 2040)
+                   (weather.perturb
+                    offset-temperature: 0.63 #climate-change-weather))
+                (when (sim.year-is exactly: 2041)
+                   (weather.perturb
+                    offset-temperature: 0.66 #climate-change-weather))
+                (when (sim.year-is exactly: 2042)
+                   (weather.perturb
+                    offset-temperature: 0.69 #climate-change-weather))
+                (when (sim.year-is exactly: 2043)
+                   (weather.perturb
+                    offset-temperature: 0.72 #climate-change-weather))
+                (when (sim.year-is exactly: 2044)
+                   (weather.perturb
+                    offset-temperature: 0.75 #climate-change-weather))
+                (when (sim.year-is exactly: 2045)
+                   (weather.perturb
+                    offset-temperature: 0.78 #climate-change-weather))
+                (when (sim.year-is exactly: 2046)
+                   (weather.perturb
+                    offset-temperature: 0.81 #climate-change-weather))
+                (when (sim.year-is exactly: 2047)
+                   (weather.perturb
+                    offset-temperature: 0.84 #climate-change-weather))
+                (when (sim.year-is exactly: 2048)
+                   (weather.perturb
+                    offset-temperature: 0.87 #climate-change-weather))
+                (when (sim.year-is exactly: 2049)
+                   (weather.perturb
+                    offset-temperature: 0.90 #climate-change-weather))
+                (when (sim.year-is exactly: 2050)
+                   (weather.perturb
+                    offset-temperature: 0.93 #climate-change-weather))
+                default: (weather 
+        name: climate-change-weather
+        windspeed: [ 5.1 5.0 4.9 4.4 4.3 3.8 3.8 3.7 4.0 4.3 4.5 4.7 ]
+        insolation: [ 20 60 100 140 180 220 220 180 140 100 60 20 ]
+        temperature: [ 4.3 4.9 6.5 8.9 11.7 14.6 16.6 16.4 14.1 10.6 7.1 4.2 ])
+                                    )
+            )
+    
+        (include-modules /SAP2012-Master/SAP12-tariffs.nhm)
+        (include-modules /SAP2012-Master/SAP12-carbon.nhm)
+   
+    (~module sap
+         (template init[])
+         
+         (template under-sap [@evaluate]
+                   ;; Run a function under SAP conditions.
+                   (under
+                       (counterfactual.energy-calculator SAP2012)
+                       (counterfactual.carbon)
+                       (counterfactual.weather)
+                       evaluate: @evaluate)
+          )
+         
+         (template score []
+                   ;; Calculate the SAP score.
+                   (/under-sap
+                       evaluate: (house.fuel-cost-index)))
+          )
+   
+    (~init-modules)   
+    (sap-tariffs/define)
+    
+    (def-report SAP
+        (column name: score value: (sap/score))
+        (column name: energy value: (sap/under-sap evaluate: (house.energy-use)))
+        (column name: emissions value: (sap/under-sap evaluate: (house.emissions)))
+        (column name: fuel-cost value: (sap/under-sap evaluate: (house.fuel-cost)))
+     )
+    
+    ;; REPORT Definitions (called at the bottom of the scenario)
+
+        (report.measure-installations name: InstallationsReport)
+    
+(~module AggregateTemplates
+        (template EmbodiedCarbonStatsExtreme []
+              aggregate.count
+        ( aggregate.sum name: ExternalWallArea_total (- (house.energy-calculation-step AreaExternal) (house.roof-area)))
+        ( aggregate.where  (all (house.any-wall has-external-insulation: true) (house.any-wall has-construction: AnySolid)) name: ExternalWallArea_Insulated (aggregate.sum  (- (house.energy-calculation-step AreaExternal) (house.roof-area)))  )
+        ( aggregate.where  (all (house.any-wall has-cavity-insulation: true) (house.any-wall has-construction: AnyCavity))  name: CavityWallArea_Insulated (aggregate.sum (- (house.energy-calculation-step AreaExternal) (house.roof-area))) )
+        ( aggregate.sum name: RoofArea_total  (house.roof-area))
+        ( aggregate.where (all (house.has-loft) (house.loft-insulation-thickness-is above: 0)) name: RoofArea_Insulated                  (aggregate.sum (house.roof-area)) )
+        ( aggregate.where (all (house.has-loft) (house.loft-insulation-thickness-is above: 0)) name: RoofLoftInsulationVolume_Insulated  (aggregate.sum (* (house.roof-area) (/ (house.loft-insulation-thickness) 1000))) )
+              )
+)
+    
+        (def-report StandardAggregates_Extreme
+                record-changes: False 
+               (column name: HouseEnergyUse                   value: (house.energy-use)                                 summary: sum  )
+               (column name: GasUse                           value: (house.energy-use by-fuel: MainsGas )              summary: sum)
+               (column name: ElecConsumption                  value: (house.energy-use by-fuel: Electricity )           summary: sum)
+               (column name: CommunityHeatConsumption         value: (house.energy-use by-fuel: CommunityHeat )         summary: sum)
+               (column name: MeanHeatingEfficiencyPrimaryHeat value: (house.heating-efficiency of: PrimarySpaceHeating) summary: mean)
+               (column name: MeanWallUvalue                   value: (house.u-value of: Walls)                          summary: mean)
+               (column name: MeanRoofUvalue                   value: (house.u-value of: Roofs)                          summary: mean)
+               (column name: MeanFloorUvalue                  value: (house.u-value of:Floors)                          summary: mean)
+               (column name: MeanTotalUvalue                  value: (house.u-value)                                    summary: mean)
+               (column name: CountOfBoilers                   value: (house.has-boiler)                                 summary: count)
+               (column name: CountOfInsulatedTanks value: (house.has-insulated-hot-water-cylinder)                      summary: count)
+               (column name: CountOfCentralHeating            value: (house.has-central-heating)                        summary: count)
+               (column name: CountOfHP_pseudo value: (all (house.has-central-heating) (house.main-heating-fuel-is Electricity) (> (house.heating-efficiency of: PrimarySpaceHeating) 2)) summary: count)
+               (column name: SumBuildingPeakHeatDemand value: (house.peak-load internal-temperature: 21 external-temperature: -2 ) summary: sum)
+               (column name: MeanInternalTemp                 value:(house.mean-internal-temperature)                   summary: mean)
+                  
+                ;added from Domestic Energy FactFile 11/01/20
+               (column name: PopulationPeople                 value: (house.number-of-occupants)                        summary: sum)
+               (column name: SpaceheatingEnergy               value: (house.energy-use by-service: SpaceHeating)        summary: sum)
+               (column name: AppliancesEnergy value: (house.energy-use by-service: Appliances) summary: sum)
+               (column name: CavityWallHouses value: (house.any-wall has-construction: AnyCavity) summary: count  )
+               (column name: CavityWallHouses_With_CavityWallIns value: (house.any-wall has-cavity-insulation: true) summary: count  )
+               (column name: CavityWallHouses_WithOut_CavityWallIns value: (house.any-wall has-construction: AnyCavity has-cavity-insulation: false) summary: count  )
+            
+            (column name: SolidWallHouses value: (house.any-wall has-construction: AnySolid) summary: count)
+            (column name: SolidWallHouses_With_InternalIns value: (house.any-wall has-construction: AnySolid has-internal-insulation: true) summary: count  )
+            (column name: SolidWallHouses_WithOut_InternalIns value: (house.any-wall has-construction: AnySolid has-internal-insulation: false) summary: count  )
+            
+            (column name: MeanWallHeatLossCoeff  value:(house.energy-calculation-step HeatLossCoefficient_ExternalWall)             summary: mean)
+            (column name: MeanRoofHeatLossCoeff  value:(house.energy-calculation-step HeatLossCoefficient_Roof)                     summary: mean)
+            (column name: MeanFloorHeatLossCoeff value:(house.energy-calculation-step HeatLossCoefficient_GroundFloor)              summary: mean)
+            (column name: MeanTotalHeatLossCoeff value:(house.energy-calculation-step HeatTransferCoefficient)                      summary: mean)
+            (column name: MeanTotalHeatLossParam value:(house.energy-calculation-step HeatLossParameter)                            summary: mean)
+            (column name: TotalHeatLossParam     value:(house.energy-calculation-step HeatLossParameter)                            summary: sum)
+            
+            (column  name: MeanTotalEnergyIntensity_perM2       value: (/ house.energy-use  house.total-floor-area )                                    summary: mean)
+            (column  name: MeanSpaceHeatEnergyIntensity_perM2   value: (/ (house.energy-use by-service: PrimarySpaceHeating)  house.total-floor-area )  summary: mean)
+            
+            (column name: MeanSAPrating value: (sap/score) summary: mean)
+                  
+            (column  name: SolidWallHouses_With_ExternalIns     value: (house.any-wall has-construction: AnySolid has-external-insulation:  true)   summary: count  )
+            (column  name: SolidWallHouses_WithOut_ExternalIns  value: (house.any-wall has-construction: AnySolid has-external-insulation: false)   summary: count)
+                  
+            (column  name: MeanSpaceHeatDemandIntensity_perM2   value: (/ (house.energy-calculation-step SpaceHeating)  house.total-floor-area )    summary: mean)
+                  
+            (column  name: CountOfPV            value: (house.has-solar-photovoltaic)   summary: count)
+            (column  name: CountOfSolarThermal  value:(house.has-solar-thermal)         summary: count)
+                  
+            (column  name: MeanSpaceHeatGASEnergyIntensity_perM2    value: (/ (house.energy-use by-service: PrimarySpaceHeating by-fuel: MainsGas)  house.total-floor-area ) summary: mean)
+            (column  name: MeanSpaceHeatELECEnergyIntensity_perM2   value: (/ (house.energy-use by-service: PrimarySpaceHeating by-fuel: Electricity)  house.total-floor-area ) summary: mean)
+         
+            (column  name: MeanTotalGASEnergyIntensity_perM2    value: (/ (house.energy-use by-fuel: MainsGas)  house.total-floor-area )    summary: mean)
+            (column  name: MeanTotalELECEnergyIntensity_perM2   value: (/ (house.energy-use by-fuel: Electricity)  house.total-floor-area ) summary: mean)
+                  
+                  ; DHW metrics, added 22-01-2020
+            (column  name: MeanDHWHeatDemandIntensity_perM2 value: (/ (house.energy-use by-service: WaterHeating)  house.total-floor-area ) summary:mean)
+            (column  name: MeanDHW_GASEnergyIntensity_perM2  value: (/ (house.energy-use by-service: WaterHeating by-fuel: MainsGas)  house.total-floor-area )    summary: mean)
+            (column  name: MeanDHW_ELECEnergyIntensity_perM2 value: (/ (house.energy-use by-service: WaterHeating by-fuel: Electricity)  house.total-floor-area ) summary: mean)
+            (column  name: SumDHW_GASEnergyIntensity  value:  (house.energy-use by-service: WaterHeating by-fuel: MainsGas)                  summary: sum)
+            (column  name: SumDHW_ELECEnergyIntensity value:  (house.energy-use by-service: WaterHeating by-fuel: Electricity)                summary: sum)
+                  
+                ;Population and occupancy
+            (column  name: SumPeoplePopulation value: (house.number-of-occupants) summary:sum)
+            (column  name: SumPeoplePopulation value: (house.number-of-occupants) summary:mean)
+                ;Materials
+                
+                ;Ventilation
+             (column name: ACH value: (house.air-change-rate) summary: mean)
+             (column name: VentilationHeatLoss value: (house.energy-calculation-step VentilationHeatLoss)  summary: mean) 
+                
+                ;Health  
+                (column name: health-sit value: (house.sit)                 )
+                (column name: health-sit-rebate value: (house.sit-rebate rebate: 500 temperature: 18))
+                (column name: health-impact-mortality value: (health-impact-of
+                                                                 horizon: 10
+                                                                 offset: 0
+                                                                 
+                                                                 on: Mortality
+                                                                 due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
+                                                                 ) summary:mean
+                        )
+                ;Costs
+                (column name: TotalCapexOfMeasures value:(capital-cost) summary: sum)
+                (column name: MeanCapexOfMeasures value: (capital-cost) summary: mean)
+                
+                ;Misc
+                (column name: SumFloorArea value: (house.total-floor-area)                      summary: sum)
+                (column name: MeanFloorArea value: (house.total-floor-area)                     summary: mean)
+                      )
+    
+        (def-report MIT_Heat_Demand (cut name: cutandshut Flags) record-changes: False
+                (column name: aacode value: (house.survey-code))
+                (column name: heatEfficiency value: (house.heating-efficiency of:PrimarySpaceHeating) )
+                (column name: energyDemandTotal value: (house.energy-use))
+                (column name: energyDemandGas value: (house.energy-use by-fuel: mainsgas))
+                (column name: energyDemandElec value: (house.energy-use by-fuel: electricity))
+                (column name: MIT value: (house.mean-internal-temperature))
+                (column name: Flags value: (house.flags))
+                (column name: AirChangesCalc value: (house.energy-calculation-step AirChanges_ChimneysFluesFansAndPSVs))
+                (column name: AirChangesMeasurement value: (house.energy-calculation-step InfiltrationRateMaybePressureTest))
+                )
+    
+        ;define variable for the heating internal set point temperature
+            (def internalSetpointTemp default: 21 on: simulation)
+        ;define variable for the reduced heating internal set point temperature
+            (def EcoInternalSetpointTemp default: 18 on: Simulation)
+        ;define variable for the conversion rate of homes to adopt the new lower internal temperature setpoint, will be implemented via retrofit/low heat loss buildings
+            (def EcoSetpoint_ConversionRate default: 1700000 on:Simulation)
+        ;define variable for the the number of houses to be retrofitted each year
+            (def RetrofitAmbition default: 500000 on: Simulation)
+        ;define variable for the number of new build to be constructed annually
+            (def NewBuildAmbition default: 0 on: Simulation)
+        ;define variable for the number of new HPs to be installed annually (will be installed as part of New Build)
+            (def NewHPAmbition default: 20000 on: Simulation) ; same as NewBuildAmbiton
+         ;define variable for the number of PV installations to be installed annually
+            (def RetrofitPVAmbition default: 0 on: simulation)
+        ;define variable for solar thermal installations per year
+            (def RetrofitSolarThermalAmbition default:130000 on:simulation)
+        ;define variable for maximum heating system installations per year, this is derived from the current rate of boiler installations of 1.7million per year curently but  closer to 1.5 historically
+            (def RetrofitHeatingSystemInstallationLimit default: 1500000 on:simulation)
+        ;define variable for increase in retrofits possible per year, i.e. ramp rate of installations.  Used up to the #RetrofitAmbition cap
+            (def RetrofitRampRate default:50000 on:Simulation)
+        ;define variable for the % of appliance and cooking gains that will result after assumed behavioural changes and appliance efficiency improvements e.g induction hobs
+            (def ApplianceUseImprovement default: 0.8 on:Simulation)
+    
+    ;Set Global variable to reflect lower hotwater usage per person, this changes the variable (25) default in the SAP calculation DHWvol = 36 + 25 x Persons
+       ; (context.energy-constants  (constant  (HotWaterConstants09_PERSON_DEPENDENT_VOLUME 23)) )
+    
+    
+    ;; set the heating temperature to lower value to mimic an avoidance of comfort taking
+    ; internal temperatures are actually already constant in UKTM, so this is a demand reduction inadvertently included
+    ; from UKTM: The mean internal temperature required in all dwellings is 17.26°C. Source - ECUK Domestic data tables 2014 update, Table 3.06 - Average value over the period 2008-2012. 
+
+    ;; scenario goes here:
+    ; set initial start parameters for scenario
+        (on.dates 01/01/2020
+                    ; Sets all internal setpoints to 21C, double checks not to undo flagged Behavioural change homes
+                    (apply name: HeatingSetpointInitialisation
+                     (action.set-heating-temperatures
+                         living-area-temperature: internalSetpointTemp
+                         rest-of-dwelling-temperature: internalSetpointTemp)
+                     (action.reduced-internal-gains)
+                     to: ( filter (house.flags-match !EcoSetPoint_BehaviouralChange_Retro)
+                                              (all-houses)
+                                 )
+                     )
+              )
+    
+    ;  CONSTRUCTION actions, aggregates and probes
+      (on.construction
+                (apply
+                to: (filter 
+                            (house.age-is exactly:0)
+                    (affected-houses)
+                    )
+                ; SET ALL NEW BUILD properties
+                    (action.set-wall-construction wall-type: TimberFrame)
+                    (action.set-wall-u   u-value: 0.2)                                  ; acc. FutureHomes it would be 0.26W/(m2K)  for Walls, hence more ambitious target
+
+                    (measure.adjust-airchange-devices adjustment: 0 device-type: Vents) 
+                    (action.set-thermal-bridging-factor 0.15)                           ; acc. Part La Secton 3.10 'Thermal Bridges'
+                   ; (measure.install-draught-proofing proportion: 1)
+                    (measure.install-glazing frame-type: uPVC insulation-type:Argon   u-value: 2.0 glazing-type: triple) ; Uvalue acc. Part La Secton 2.35 Table 2 'Limiting Fabric parameters'
+            ; SAP default U values: 
+            ; triple glazing = 1.8 (window) 2.0 (roof window)
+            ; double glazing = 2.4 (window) 2.6 (roof window)
+                    (measure.lighting proportion-led: 1)                                ; acc. Part La Secton 3.10 'Thermal Bridges'
+                )
+        ; LOFT insulation for houses with LOFT
+          (apply
+                      to: (filter (all
+                                      (house.buildyear-is exactly: 0)
+                                      (house.has-loft)
+                                      (house.is-suitable-for(measure.loft-insulation thickness: 300 u-value: 0.2))
+                                      )
+                                  )
+                         (measure.loft-insulation thickness: 300 u-value: 0.2)                ;placeholder thickness
+                         ;(action.set-loft-insulation u-value: 0.2 )  ; could be thickness determined BUT Uvalue 0.2 set acc. Part La Secton 2.35 Table 2 'Limiting Fabric parameters'
+                  )
+        ; FLOOR insulation for proporties where suitable
+        (apply
+                to: (filter (all
+                                (house.buildyear-is exactly: 0)
+                                (house.is-suitable-for (measure.floor-insulation thickness: 50 u-value: 0.2))
+                            )
+                        )
+                   (measure.floor-insulation thickness: 50 u-value: 0.2)               ;placeholder thickness
+                   ;(action.set-floor-insulation u-value: 0.25)                         ; acc. Part La Secton 2.35 Table 2 'Limiting Fabric parameters'
+            )
+        
+        ; HPs for ALL new builds  wherever possible,  boilers where NHM does not allow HPs
+        
+        ;GSHP>ASHP>Hybrid
+                          ; GROUND Source HPs for ALL suitable new builds which DO NOT already have an ASHP, i.e. still have a boiler
+        (apply
+                to: (filter (all
+                        (house.is-suitable-for (measure.heat-pump type: GroundSource))
+                        (house.has-boiler)
+                        (house.age-is exactly: 0) ; belt and braces to ensure only new builds considered
+                        ; (sim.year-is above:  2030)
+                            )
+                        )
+               (measure.heat-pump type: GroundSource  cop: 3.5 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+                               update-flags: newBuildGSHP )
+               (measure.heating-control type: TimeTemperatureZoneControl)
+               (measure.heating-control type: ThermostaticRadiatorValve)
+            )
+            ; AIR Source HPs for suitable homes who dont have a GSHP
+            (apply
+                to:   (filter (all
+                                    (house.is-suitable-for (measure.heat-pump type: AirSource))
+                                    (house.age-is exactly: 0) ; belt and braces to ensure only new builds considered
+                                    (house.flags-match !newBuildGSHP)
+                                   ; (sim.year-is above:  2030) ; can be time limited, but in extreme scenario happens from first day
+                                    )
+                        )
+                      
+               (measure.heat-pump type: AirSource  ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+                               update-flags: newBuildASHP )
+               (measure.heating-control type: TimeTemperatureZoneControl)
+               (measure.heating-control type: ThermostaticRadiatorValve)
+            )
+
+
+        
+        ; ONLY or those houses which NHM cant install heat pumps (should be small)
+            ; install hybrids boilers to all newly build homes which are on gas
+               (apply
+                      to: (filter (all
+                                      (house.buildyear-is exactly: 0)
+                                      (house.has-boiler)
+                                      (house.flags-match !newBuildGSHP !newBuildASHP)
+                            ;(sim.year-is below: 2030)
+                                      )
+                                  )
+                      (measure.heat-pump hybrid-fuel: MainsGas hybrid-efficiency: 0.92 )
+                      (measure.heating-control type: TimeTemperatureZoneControl)
+                      (measure.heating-control type: ThermostaticRadiatorValve)
+                  )
+
+        ;Solar Thermal in NewBuild
+
+               (apply name: SolarThermal_NewBuild
+               (measure.solar-dhw)
+               to: (sample 0.5
+                           (filter
+                                      (house.buildyear-is exactly: 0)
+                                      )
+                                  )
+               )
+        ;Behavioural changes to be bundled in with NewBuild
+              (apply name: EcoSetPoint_BehaviouralChange_NewBuild
+                     ;Heat demand reduction through convincing occupiers to reduce thermostat set point from 21C to 18C (set in global parameters at top of scenario)
+                     ; action is applied to existing houses only. New houses are treated separately
+                     (action.set-heating-temperatures
+                         living-area-temperature: EcoInternalSetpointTemp
+                         rest-of-dwelling-temperature: EcoInternalSetpointTemp)
+                     to: (filter (all
+                                      (house.buildyear-is exactly: 0)
+                                      )
+                                  )
+                     )
+              (apply name: HeatedFloorArea_acc_Occupancy_NewBuild
+                     ; action to heated area to just the living area (i.e. quasi floating without heat demand) if the occupancy is below 1.5 i.e. single occupancy
+                     (action.set-heating-temperatures
+                         rest-of-dwelling-heated-proportion: 0)
+                     to: (filter (all
+                                    (< house.number-of-occupants 1.5)
+                                    (house.buildyear-is exactly: 0)
+                              )
+                       )
+                     )
+                 ; AGGREGATE COUNT and PROPERTIES of annually newly CONSTRUCTED buildings
+                (apply
+                  name: NEW-build-stats-annual
+                  to: (affected-houses) 
+                   (send-to-report from: NEW-build-stats-annual #StandardAggregates_Extreme)
+                  )
+        )
+
+              ;; RATES of CONSTRUCTION and DEMOLITION
+    ; From UKTM document '05_residential_UKTMdoc.docx' section 5.3.2
+    ;The total housing stock to 2050, in Figure 7.4, is based on forecasts from Boardman et al. (2005) 
+    ; and assumes an existing house demolition rate of 0.26% per year 
+    ; and a construction rate of approximately 190,000 new houses per year.
+    ;; set the construction rate to match the UKTM rate
+              ;; set the DEMOLITION rate to match the UKTM rate
+     (on.dates (regularly)
+               (apply action.demolish
+                to:   (sample 0.0026  
+                          (filter (house.age-is above: 60) (all-houses))
+                     )
+                )
+               ;; Build and define new build characteristics here
+              (apply (action.construct name:newbuildConstruction)
+                    (house.flag newBuild)
+                     to: (sample NewBuildAmbition 
+                                 (filter 
+                                     (all 
+                                         (house.age-is below: 20)
+                                         (house.any-wall has-construction: TimberFrame)
+                                      )
+                          (all-houses)
+                                  )
+                            )
+               )
+              ;; Changes to existing stock
+
+    ;; RETROFIT actions to exsting stock
+    ; ventilation actions NOTE: NHM only has natural ventilation, so the proxy for a transition to MVHR is to reduce Vents & fans to zero
+              ;Select Boiler Replacemnt cohort AND remove all secondary heating and electric showers
+                (apply name:BoilerReplacementCohort
+                     (house.flag BoilerReplacementCohort)
+                     
+                  to: (sample RetrofitHeatingSystemInstallationLimit
+                                 (all-houses)
+                     )
+                )
+        ;GSHP>ASHP>Hybrid
+                          ; GROUND Source HPs for ALL suitable new builds which DO NOT already have an ASHP, i.e. still have a boiler
+        (apply name: GSHPreplacingOLDboilers
+                     to:  (filter
+                            (all
+                                (house.flags-match BoilerReplacementCohort)
+                                (house.is-suitable-for (measure.heat-pump type: GroundSource))
+                                (house.has-boiler)
+                                (> (house.space-heatingsystem-age) 20 )
+                            )
+                            (all-houses)
+                           )
+                          
+               (measure.heat-pump type: GroundSource  cop: 3.5 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+                               update-flags: BoilerReplacementGSHP )
+               (measure.heating-control type: TimeTemperatureZoneControl)
+               (measure.heating-control type: ThermostaticRadiatorValve)
+            )
+            ; AIR Source HPs for suitable homes who dont have a GSHP
+            (apply  name: ASHPreplacingOLDboilers
+                     to: (filter
+                            (all
+                                  (house.flags-match BoilerReplacementCohort !BoilerReplacementGSHP)
+                                (house.is-suitable-for (measure.heat-pump type: AirSource))
+                                (house.has-boiler)
+                                (> (house.space-heatingsystem-age) 20 )
+                            )
+                            (all-houses)
+                           )
+                          
+                      
+               (measure.heat-pump type: AirSource  cop:2.5 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+                               update-flags: BoilerReplacementASHP )
+               (measure.heating-control type: TimeTemperatureZoneControl)
+               (measure.heating-control type: ThermostaticRadiatorValve)
+            )
+
+
+        
+        ; ONLY or those houses which NHM cant install heat pumps (should be small)
+            ; install hybrids boilers to all newly build homes which are on gas
+               (apply name: HybridBoilerReplacement
+                      to: (filter (all
+                                (house.has-boiler)
+                                (> (house.space-heatingsystem-age) 20 )
+                                      (house.flags-match BoilerReplacementCohort !BoilerReplacementGSHP !BoilerReplacementASHP)
+                                      )
+                                  )
+                      (measure.heat-pump hybrid-fuel: MainsGas hybrid-efficiency: 0.92 )
+                      (measure.heating-control type: TimeTemperatureZoneControl)
+                      (measure.heating-control type: ThermostaticRadiatorValve)
+                  )
+              ;select cohort for annual retrofit and Flag them (flag removed after installations completed)
+               (apply name:RetroFitCohort
+                     (house.flag RetroFitCohortFlag)
+                  to: (sample (min RetrofitAmbition (* RetrofitRampRate (- (sim.year) 2020))) (filter (house.buildyear-is below: 2019)
+                                 (all-houses))
+                     )
+                )
+              
+
+              (apply name:VentilationRetrofit 
+                     (measure.adjust-airchange-devices adjustment: 0 device-type: Vents)
+                     (measure.adjust-airchange-devices adjustment: 0 device-type: Fans)
+                     (measure.install-draught-proofing proportion: 1)
+                     (house.flag VentRetrofit)
+                  to: (house.flags-match RetroFitCohortFlag
+                     )
+                )
+               (apply name: FabricRetrofit
+                ; SET Fabric retrofit actions properties
+                     
+                    ;(action.set-wall-construction wall-type: TimberFrame)
+                    ;(action.set-wall-u   u-value: 0.2)
+                    (measure.wall-insulation type: Cavity suitable-construction:AnyCavity resistance: 0.05 thickness: 100)
+                    (measure.wall-insulation type: External resistance: 0.03 suitable-construction: AnySolid thickness: 150)
+                    (measure.wall-insulation type: Internal resistance: 0.015 suitable-construction: GraniteOrWhinstone thickness: 10)
+                    (measure.wall-insulation type: Internal resistance: 0.015 suitable-construction: Sandstone thickness: 10)
+                    (measure.wall-insulation type: Internal resistance: 0.015 suitable-construction: Cob thickness: 10)
+                    (measure.floor-insulation u-value: 0.1 thickness:100)
+                
+                    (measure.loft-insulation resistance: 0.044 thickness: 400)
+                     (house.flag FabricRetrofit)
+                  to: (house.flags-match RetroFitCohortFlag
+                     )
+                  )
+              
+               (apply name: GlazingRetrofit
+                     ; Glazing retrofit, ------should be changed to include different glazing options by age of building
+                     (measure.install-glazing frame-type: uPVC insulation-type:ArgonLowESoftCoat   u-value: 1.8 glazing-type: Triple)
+                     (house.flag GlazingRetrofit)
+                  to: (house.flags-match RetroFitCohortFlag
+                     )
+                     )
+               ; Efficiency in appliances in RetrofitBuild
+                ; the function used applies to the annual energy use
+                    (apply name: ApplianceImprovement_Retrofit
+               (measure.set-adjustment-terms adjustment-type: Appliances constant-term: 0 linear-factor: ApplianceUseImprovement)
+                 
+                  to: (house.flags-match RetroFitCohortFlag
+                     )
+               )
+              
+                      ; Solar Thermal in RetrofitBuild
+                      ; PV considered at system level through UKTIMES
+                    (apply name: SolarThermal_Retrofit
+               (measure.solar-dhw) 
+                    to: (sample RetrofitSolarThermalAmbition (filter (house.buildyear-is below: 2019)
+                                 (all-houses)))
+               )
+              
+              
+              (apply name: EcoSetPoint_BehaviouralChange_Retro
+                     ;Heat demand reduction through convincing occupiers to reduce thermostat set point from 21C to 18C (set in global parameters at top of scenario)
+                     ; action is applied to existing houses only. New houses are treated separately
+                     (action.set-heating-temperatures
+                         living-area-temperature: EcoInternalSetpointTemp
+                         rest-of-dwelling-temperature: EcoInternalSetpointTemp)
+                     (action.reduced-internal-gains)
+                     (house.flag EcoSetPoint_BehaviouralChange_Retro)
+                     ; action to heated area to just the living area (i.e. quasi floating without heat demand) if the occupancy is below 1.5 i.e. single occupancy
+                     (action.set-heating-temperatures 
+                         rest-of-dwelling-temperature: 16)
+                     to: (sample EcoSetpoint_ConversionRate 
+                                 (filter (all(house.buildyear-is below: 2019)(house.flags-match FabricRetrofit)(< 100 (house.heat-loss)))
+                                              (all-houses))
+                                 )
+                     )
+              ;DE-select cohort for annual retrofit by removing Flag them (
+               (apply name:RetroFitCohort
+                     (house.flag !RetroFitCohortFlag)
+                  to: (filter (house.flags-match RetrofitCohortFlag) (all-houses)
+                     )
+                )
+              
+                     
+              
+        ;;GLOBAL REPORTS
+              ;GENERAL measures report, predefined in NHM
+              ;(apply
+              ;    name:InstallationsReport 
+              ;    send-to-report #InstallationsReport )
+              
+              ; GENERAL aggregation Housing Stock tracking
+              (aggregate name: HousingStockTracker_Extreme
+                    (aggregate.count name:TotalPopulation)
+                         )
+               (apply
+                  to:(all-houses) name: allHousesAnnualReport_Extreme
+                  (send-to-report #MIT_Heat_Demand) 
+                  (probe.aggregate name: stock_energy_aggregate
+                  capture: [(aggregate.sum (house.energy-use))]
+                                   action.do-nothing)
+                )
+               (apply
+                  to: (house.flags-match FabricRetrofit)   name: FabricRetrofitAnnualReport_Extreme
+                  (send-to-report #MIT_Heat_Demand) 
+                  (probe.aggregate name: stock_energy_aggregate_Extreme
+                  capture: [(aggregate.sum (house.energy-use))]
+                                   action.do-nothing)
+                )
+
+              
+        ; AGGREGATE stats for total power needed to provide GAS and ELEC year on year
+        (aggregate
+                  name:ALL-build-GAS_POWER-stats_Extreme
+                  over: (filter 
+                            (all
+                                (house.main-heating-fuel-is MainsGas)
+                                (house.has-boiler))
+                             (all-houses)
+                            )
+                    (aggregate.sum name: TotalGAS_peakDemand_kW (/ (house.peak-load external-temperature: -2 internal-temperature: 21) (house.heating-efficiency of: PrimarySpaceHeating)) )
+                    (aggregate.count name: NoBuildingsWithGasHeating)
+                  
+                  )
+              
+
+        (aggregate
+                  name:ALL-build-ELEC_POWER-stats_Extreme
+                  over: (filter 
+                            (all
+                                (house.main-heating-fuel-is Electricity)
+                                (house.has-central-heating))
+                             (all-houses)
+                            )
+                    (aggregate.sum name: TotalELEC_peakDemand_kW  (/ (house.peak-load external-temperature: -2 internal-temperature: 21) (house.heating-efficiency of: PrimarySpaceHeating)) )
+                    (aggregate.count name: NoBuildingsWithElecHeating)
+                  
+                  )
+              
+              ; AGGREGATE COUNT and PROPERTIES of ALL buildings, divided by ON or OFF Gas grid
+              ; OLD build (i.e. existing in 2019) and NEW build (built since 2019)
+              (apply 
+                  name: ALL-build-stats-ONgasGrid_Extreme
+                  to: (filter (house.is-on-gas)(all-houses))
+                  (send-to-report  from: ALL-build-stats-ONgasGrid #StandardAggregates_Extreme) 
+                  )
+               (apply 
+                  name: ALL-build-stats-OFFgasGrid_Extreme
+                  to: (filter (none house.is-on-gas )(all-houses))
+                  (send-to-report from: ALL-build-stats-OFFgasGrid #StandardAggregates_Extreme) 
+                  )
+              (apply
+                  name: OLD-build-stats_Extreme
+                  to: (filter (house.buildyear-is below: 2019)(all-houses))
+                  (send-to-report from: OLD-build-stats #StandardAggregates_Extreme) 
+                  )
+              (apply
+                  name: NEW-build-stats_Extreme
+                  to: (filter (house.buildyear-is above: 2019)(all-houses))
+               (send-to-report from: NEW-build-stats #StandardAggregates_Extreme) 
+                  )
+              (aggregate
+                  name: NEW-build-embodiedCarbs_Extreme
+                  over: (filter (house.buildyear-is above: 2019)(all-houses))
+                  (AggregateTemplates/EmbodiedCarbonStatsExtreme)
+                  )
+              
+              (apply
+                  name: ALL-build-stats_Extreme
+                  to: (all-houses) 
+                   (send-to-report from: ALL-build-stats #StandardAggregates_Extreme)
+                  )
+              (aggregate
+                  name: ALL-build-embodiedCarbs_Extreme 
+                  over: (all-houses)
+                 (AggregateTemplates/EmbodiedCarbonStatsExtreme) 
+                  )
+              
+              
+          ;  name: ALL-build-stats-dividedby-form
+          ;  over: (all-houses)
+          ;  divide-by: (house.built-form)
+              
+        ; AGGREGATE COUNT and PROPERTIES of ALL buildings, divided by Wall Type
+            ;name: ALL-build-stats-dividedby-WallType
+            ;over: (all-houses)
+            ;divide-by: (house.is-suitable-for (measure.wall-insulation suitable-construction: AnyCavity thickness:10)  )
+        
+         ; AGGREGATE COUNT and PROPERTIES of ALL buildings  divided by the Morphology (type of location, village, Urban etc....)
+            ;name: ALL-build-stats-dividedby-Morphology
+            ;over: (all-houses)
+            ;divide-by: (house.morphology )
+              
+         ; AGGREGATE COUNT and PROPERTIES of ALL buildings  divided by the heating fuel 
+            ;name: ALL-build-stats-dividedby-fuel
+            ;over: (all-houses)
+            ;divide-by: (house.heating-fuel)
+              
+              
+              )
+              
+    ;REPEAT annual aggregates and reporting for CHANGES to housing stock (sits outside the previous 'on.date(regulary))
+   
+ 
+     (on.change include-startup: true 
+              (aggregate name: HousingStockChangeTracker_Extreme
+                    (aggregate.count name:TotalPopulation)
+                         )
+            )
+)

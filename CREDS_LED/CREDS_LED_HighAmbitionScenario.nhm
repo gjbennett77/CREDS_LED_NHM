@@ -206,8 +206,8 @@
                        (aggregate.mean  name: MeanDHWHeatDemandIntensity_perM2                  (/ (house.energy-use by-service: WaterHeating)  house.total-floor-area ) )
                        (aggregate.mean  name: MeanDHW_GASEnergyIntensity_perM2                  (/ (house.energy-use by-service: WaterHeating by-fuel: MainsGas)  house.total-floor-area ))
                        (aggregate.mean  name: MeanDHW_ELECEnergyIntensity_perM2                 (/ (house.energy-use by-service: WaterHeating by-fuel: Electricity)  house.total-floor-area ))
-                       (aggregate.sum   name: SumDHW_GASEnergyIntensity                         (house.energy-use by-service: WaterHeating by-fuel: MainsGas) )
-                       (aggregate.sum   name: SumDHW_ELECEnergyIntensity                        (house.energy-use by-service: WaterHeating by-fuel: Electricity) )
+                       (aggregate.sum   name: SumDHW_GASEnergy                         (house.energy-use by-service: WaterHeating by-fuel: MainsGas) )
+                       (aggregate.sum   name: SumDHW_ELECEnergy                        (house.energy-use by-service: WaterHeating by-fuel: Electricity) )
                   
                         ;Population and occupancy
                        (aggregate.sum   name: SumPeoplePopulation                               (house.number-of-occupants))
@@ -244,6 +244,23 @@
                         ;Misc
                         (aggregate.sum  name: SumFloorArea                  (house.total-floor-area))
                         (aggregate.mean name: MeanFloorArea                 (house.total-floor-area))
+                       
+                       ;Gross Space heating
+                       (aggregate.sum  name: SumSpaceHeatDemand            (house.energy-calculation-step SpaceHeating)  )
+                       (aggregate.sum  name: SumPrimarySpaceHeatGASEnergy           (house.energy-use by-service: PrimarySpaceHeating by-fuel: MainsGas)  )
+                       (aggregate.sum  name: SumPrimarySpaceHeatLPGEnergy           (+ (house.energy-use by-service: PrimarySpaceHeating by-fuel: BulkLPG) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BottledLPG)) )
+                       (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
+                       (aggregate.sum  name: SumPrimarySpaceHeatELECEnergy          (house.energy-use by-service: PrimarySpaceHeating by-fuel: Electricity)    )
+                        ; Cooking
+                       (aggregate.sum  name: SumCookingEnergy                       (house.energy-use by-service: Cooking )    )
+                       (aggregate.sum  name: SumCookingGASEnergy                    (house.energy-use by-service: Cooking by-fuel: MainsGas )    )
+                       (aggregate.sum  name: SumCookingLPGEnergy                    (+ (house.energy-use by-service: Cooking by-fuel: BottledLPG ) (house.energy-use by-service: Cooking by-fuel: BulkLPG ))  )
+                       (aggregate.sum  name: SumCookingELECEnergy                   (house.energy-use by-service: Cooking by-fuel: Electricity )    )
+                       ; Lighting
+                       (aggregate.sum  name: SumLightingEnergy                      (house.energy-use by-service: Lighting )    )
+                       (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
+                       
+                       
                        )
 )
         ;(report.measure-installations name: InstallationsReport)

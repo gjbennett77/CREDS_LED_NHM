@@ -156,11 +156,99 @@
         ( aggregate.where (all (house.has-loft) (house.loft-insulation-thickness-is above: 0)) name: RoofArea_Insulated                  (aggregate.sum (house.roof-area)) )
         ( aggregate.where (all (house.has-loft) (house.loft-insulation-thickness-is above: 0)) name: RoofLoftInsulationVolume_Insulated  (aggregate.sum (* (house.roof-area) (/ (house.loft-insulation-thickness) 1000))) )
               )
+             
+        (template StandardAggregatesHighAmbition []
+                       (aggregate.sum  name: HouseEnergyUse                     (house.energy-use))
+                       (aggregate.sum  name: GasUse                             (house.energy-use by-fuel: MainsGas ) )
+                       (aggregate.sum  name: ElecConsumption                    (house.energy-use by-fuel: Electricity ))
+                       (aggregate.sum  name: CommunityHeatConsumption           (house.energy-use by-fuel: CommunityHeat ))
+                       (aggregate.mean name: MeanHeatingEfficiencyPrimaryHeat   (house.heating-efficiency of: PrimarySpaceHeating))
+                       (aggregate.mean name: MeanWallUvalue                     (house.u-value of: Walls))
+                       (aggregate.mean name: MeanRoofUvalue                     (house.u-value of: Roofs))
+                       (aggregate.mean name: MeanFloorUvalue                    (house.u-value of:Floors))
+                       (aggregate.mean name: MeanTotalUvalue                    (house.u-value))
+                       (aggregate.where (house.has-boiler)                      name: CountOfBoilers                     aggregate.count)
+                       (aggregate.where (house.has-insulated-hot-water-cylinder)name: CountOfInsulatedTanks              aggregate.count)
+                       (aggregate.where (house.has-central-heating)             name: CountOfCentralHeating              aggregate.count)
+                       (aggregate.where (all (house.has-central-heating) (house.main-heating-fuel-is Electricity) (> (house.heating-efficiency of: PrimarySpaceHeating) 2)) name: CountOfHP_pseudo                  aggregate.count)
+                       (aggregate.sum   name: SumBuildingPeakHeatDemand         (house.peak-load internal-temperature: 21 external-temperature: -2 ))
+                       (aggregate.mean  name: MeanInternalTemp                  (house.mean-internal-temperature))
+                       
+                       ;added from Domestic Energy FactFile 11/01/20
+                       (aggregate.sum   name: PopulationPeople                 (house.number-of-occupants))
+                       (aggregate.sum   name: SpaceheatingEnergy               (house.energy-use by-service: SpaceHeating))
+                       (aggregate.sum   name: AppliancesEnergy                 (house.energy-use by-service: Appliances))
+                       (aggregate.where (house.any-wall has-construction: AnyCavity)    name: CavityWallHouses                                                      aggregate.count)
+                       (aggregate.where (house.any-wall has-cavity-insulation: true)    name: CavityWallHouses_With_CavityWallIns                                   aggregate.count)
+                       (aggregate.where (house.any-wall has-construction: AnyCavity has-cavity-insulation: false) name: CavityWallHouses_WithOut_CavityWallIns      aggregate.count)
+                       (aggregate.where (house.any-wall has-construction: AnySolid)      name: SolidWallHouses                                                      aggregate.count)
+                       (aggregate.where (house.any-wall has-construction: AnySolid has-internal-insulation: true)   name: SolidWallHouses_With_InternalIns          aggregate.count)
+                       (aggregate.where (house.any-wall has-construction: AnySolid has-internal-insulation: false)  name: SolidWallHouses_WithOut_InternalIns       aggregate.count)
+                       (aggregate.where (house.any-wall has-construction: AnySolid has-external-insulation:  true)  name: SolidWallHouses_With_ExternalIns          aggregate.count)
+                       (aggregate.where (house.any-wall has-construction: AnySolid has-external-insulation: false)  name: SolidWallHouses_WithOut_ExternalIns       aggregate.count)
+                       (aggregate.mean  name: MeanWallHeatLossCoeff                     (house.energy-calculation-step HeatLossCoefficient_ExternalWall))
+                       (aggregate.mean  name: MeanRoofHeatLossCoeff                     (house.energy-calculation-step HeatLossCoefficient_Roof))
+                       (aggregate.mean  name: MeanTotalHeatLossCoeff                    (house.energy-calculation-step HeatTransferCoefficient))
+                       (aggregate.sum   name: TotalHeatLossParam                        (house.energy-calculation-step HeatLossParameter))
+                       (aggregate.mean  name: MeanTotalEnergyIntensity_perM2            (/ house.energy-use  house.total-floor-area ))
+                                        
+                       (aggregate.mean  name: MeanPrimarySpaceHeatEnergyIntensity_perM2         (/ (house.energy-use by-service: PrimarySpaceHeating)  house.total-floor-area ) )
+                       (aggregate.mean  name: MeanSecondarySpaceHeatEnergyIntensity_perM2       (/ (house.energy-use by-service: SecondarySpaceHeating)  house.total-floor-area ) )
+                       (aggregate.mean  name: MeanSpaceHeatDemandIntensity_perM2                (/ (house.energy-calculation-step SpaceHeating)  house.total-floor-area ))
+                       (aggregate.mean  name: MeanPrimarySpaceHeatGASEnergyIntensity_perM2      (/ (house.energy-use by-service: PrimarySpaceHeating by-fuel: MainsGas)  house.total-floor-area ) )
+                       (aggregate.mean  name: MeanPrimarySpaceHeatELECEnergyIntensity_perM2     (/ (house.energy-use by-service: PrimarySpaceHeating by-fuel: Electricity)  house.total-floor-area ) )
+         
+                       (aggregate.mean  name: MeanSAPrating                             (sap/score) )
+                       (aggregate.where (house.has-solar-photovoltaic)   name: CountOfPV                                 aggregate.count)
+                       (aggregate.where (house.has-solar-thermal)        name: CountOfSolarThermal                       aggregate.count)
+                       
+                       ; DHW metrics, added 22-01-2020
+                       (aggregate.mean  name: MeanDHWHeatDemandIntensity_perM2                  (/ (house.energy-use by-service: WaterHeating)  house.total-floor-area ) )
+                       (aggregate.mean  name: MeanDHW_GASEnergyIntensity_perM2                  (/ (house.energy-use by-service: WaterHeating by-fuel: MainsGas)  house.total-floor-area ))
+                       (aggregate.mean  name: MeanDHW_ELECEnergyIntensity_perM2                 (/ (house.energy-use by-service: WaterHeating by-fuel: Electricity)  house.total-floor-area ))
+                       (aggregate.sum   name: SumDHW_GASEnergyIntensity                         (house.energy-use by-service: WaterHeating by-fuel: MainsGas) )
+                       (aggregate.sum   name: SumDHW_ELECEnergyIntensity                        (house.energy-use by-service: WaterHeating by-fuel: Electricity) )
+                  
+                        ;Population and occupancy
+                       (aggregate.sum   name: SumPeoplePopulation                               (house.number-of-occupants))
+                       (aggregate.mean  name: MeanOccupancy                                     (house.number-of-occupants) )
+                
+                        ;Ventilation
+                       (aggregate.mean  name: ACH                                               (house.air-change-rate))
+                       (aggregate.mean  name: VentilationHeatLoss                               (house.energy-calculation-step VentilationHeatLoss)) 
+                
+                        ;Health  
+                        (aggregate.mean name: MeanHealth-sit                                    (house.sit))
+                        (aggregate.sum  name: SumHealth-sit                                     (house.sit))
+                        (aggregate.mean name: MeanHealth-sit-rebate                             (house.sit-rebate rebate: 500 temperature: 18))
+                        (aggregate.sum  name: SumHealth-sit-reb                                 (house.sit-rebate rebate: 500 temperature: 18))
+                      ;  (aggregate.mean name: MeanHealth-impact-mortality  (health-impact-of
+                      ;                                           horizon: 10
+                      ;                                           offset: 0
+                                                                 
+                      ;                                           on: Mortality
+                       ;                                          due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
+                      ;                                           ))
+                      ;  (aggregate.sum name: SumHealth-impact-mortality  (health-impact-of
+                      ;                                           horizon: 10
+                      ;                                           offset: 0
+                                                                 
+                      ;                                           on: Mortality
+                      ;                                           due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
+                      ;                                           ))
+                       
+                        ;Costs
+                        (aggregate.sum      name: TotalCapexOfMeasures      (capital-cost))
+                        (aggregate.mean     name: MeanCapexOfMeasures       (capital-cost) )
+                
+                        ;Misc
+                        (aggregate.sum  name: SumFloorArea                  (house.total-floor-area))
+                        (aggregate.mean name: MeanFloorArea                 (house.total-floor-area))
+                       )
 )
         ;(report.measure-installations name: InstallationsReport)
     
 
-        
         (def-report StandardAggregates_HighAmbition
                 record-changes: False 
                (column name: HouseEnergyUse                   value: (house.energy-use)                                 summary: sum  )
@@ -221,14 +309,36 @@
             (column  name: MeanDHWHeatDemandIntensity_perM2 value: (/ (house.energy-use by-service: WaterHeating)  house.total-floor-area ) summary:mean)
             (column  name: MeanDHW_GASEnergyIntensity_perM2  value: (/ (house.energy-use by-service: WaterHeating by-fuel: MainsGas)  house.total-floor-area )    summary: mean)
             (column  name: MeanDHW_ELECEnergyIntensity_perM2 value: (/ (house.energy-use by-service: WaterHeating by-fuel: Electricity)  house.total-floor-area ) summary: mean)
+            (column  name: SumDHW_GASEnergyIntensity  value:  (house.energy-use by-service: WaterHeating by-fuel: MainsGas)                  summary: sum)
+            (column  name: SumDHW_ELECEnergyIntensity value:  (house.energy-use by-service: WaterHeating by-fuel: Electricity)                summary: sum)
                   
-            ;Population and occupancy
+                ;Population and occupancy
             (column  name: SumPeoplePopulation value: (house.number-of-occupants) summary:sum)
-            (column  name: SumPeoplePopulation value: (house.number-of-occupants) summary:mean)
+            (column  name: MeanOccupancy value: (house.number-of-occupants) summary:mean)
                 ;Materials
                 
-                ;Health
-               ;   (column name: HealthCost value: (health-impact-of on: Cost) summary: sum )
+                ;Ventilation
+             (column name: ACH value: (house.air-change-rate) summary: mean)
+             (column name: VentilationHeatLoss value: (house.energy-calculation-step VentilationHeatLoss)  summary: mean) 
+                
+                ;Health  
+             ;   (column name: health-sit value: (house.sit)                 )
+             ;   (column name: health-sit-rebate value: (house.sit-rebate rebate: 500 temperature: 18))
+             ;   (column name: health-impact-mortality value: (health-impact-of
+              ;                                                   horizon: 10
+             ;                                                    offset: 0
+                                                                 
+              ;                                                   on: Mortality
+              ;                                                   due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
+              ;                                                   ) summary:mean
+              ;          )
+                ;Costs
+                (column name: TotalCapexOfMeasures value:(capital-cost) summary: sum)
+                (column name: MeanCapexOfMeasures value: (capital-cost) summary: mean)
+                
+                ;Misc
+                (column name: SumFloorArea value: (house.total-floor-area)                      summary: sum)
+                (column name: MeanFloorArea value: (house.total-floor-area)                     summary: mean)
                       )
     
         (def-report MIT_Heat_Demand (cut name: cutandshut Flags) record-changes: False
@@ -627,37 +737,43 @@
               
               ; AGGREGATE COUNT and PROPERTIES of ALL buildings, divided by ON or OFF Gas grid
               ; OLD build (i.e. existing in 2019) and NEW build (built since 2019)
-              (apply 
-                  name: ALL-build-stats-ONgasGrid_HighAmbition
-                  to: (filter (house.is-on-gas)(all-houses))
-                  (send-to-report  from: ALL-build-stats-ONgasGrid #StandardAggregates_HighAmbition) 
+              (aggregate 
+                  name: ALL-build-aggregates-ONgasGrid_HighAmbition
+                  over: (filter (house.is-on-gas)(all-houses))
+                  (AggregateTemplates/StandardAggregatesHighAmbition) 
                   )
-               (apply 
-                  name: ALL-build-stats-OFFgasGrid_HighAmbition
-                  to: (filter (none house.is-on-gas )(all-houses))
-                  (send-to-report from: ALL-build-stats-OFFgasGrid #StandardAggregates_HighAmbition) 
+               (aggregate 
+                  name: ALL-build-aggregates-OFFgasGrid_HighAmbition
+                  over: (filter (none house.is-on-gas )(all-houses))
+                  (AggregateTemplates/StandardAggregatesHighAmbition)
                   )
-              (apply
-                  name: OLD-build-stats_HighAmbition
-                  to: (filter (house.buildyear-is below: 2019)(all-houses))
-                  (send-to-report from: OLD-build-stats #StandardAggregates_HighAmbition) 
+              (aggregate
+                  name: OLD-build-aggregates_HighAmbition
+                  over: (filter (house.buildyear-is below: 2019)(all-houses))
+                  (AggregateTemplates/StandardAggregatesHighAmbition) 
                   )
-              (apply
-                  name: NEW-build-stats_HighAmbition
-                  to: (filter (house.buildyear-is above: 2019)(all-houses))
-               (send-to-report from: NEW-build-stats #StandardAggregates_HighAmbition) 
+              (aggregate
+                  name: NEW-build-aggregates_HighAmbition
+                  over: (filter (house.buildyear-is above: 2019)(all-houses))
+               (AggregateTemplates/StandardAggregatesHighAmbition)
                   )
               
               (aggregate
-                  name: NEW-build-embodiedCarbs_HighAmbition
-                  over: (filter (house.buildyear-is above: 2019)(all-houses))
-                  (AggregateTemplates/EmbodiedCarbonStatsHighAmbition)
+                  name: ALL-build-embodiedCarbs_HighAmbition
+                  over: (all-houses)
+                 (AggregateTemplates/EmbodiedCarbonStatsHighAmbition) 
                   )
               
               (apply
                   name: ALL-build-stats_HighAmbition
                   to: (all-houses) 
                    (send-to-report from: ALL-build-stats #StandardAggregates_HighAmbition)
+                  )
+              
+              (aggregate
+                  name: ALL-build-aggregates_HighAmbition
+                  over: (all-houses) 
+                    (AggregateTemplates/StandardAggregatesHighAmbition)
                   )
               (aggregate
                   name: ALL-build-embodiedCarbs_HighAmbition 

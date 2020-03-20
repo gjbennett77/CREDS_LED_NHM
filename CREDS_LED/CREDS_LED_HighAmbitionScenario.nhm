@@ -260,6 +260,11 @@
                        (aggregate.sum  name: SumLightingEnergy                      (house.energy-use by-service: Lighting )    )
                        (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
                        
+                       ;DHW again, the leftovers
+                       (aggregate.sum  name: SumDHWDemand            (house.energy-use by-service: WaterHeating)  )
+                      
+                       (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
+                       (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
                        
                        )
 )
@@ -389,9 +394,10 @@
             (def RetrofitHeatingSystemInstallationLimit default: 1500000 on:simulation)
         ;define variable for increase in retrofits possible per year, i.e. ramp rate of installations.  Used up to the #RetrofitAmbition cap
             (def RetrofitRampRate default:50000 on:Simulation)
-        ;define variable for the % of appliance and cooking gains that will result after assumed behavioural changes and appliance efficiency improvements e.g induction hobs
-            (def ApplianceUseImprovement default: 0.9 on:Simulation)
-
+        ;define variable for the % of appliance gains that will result after assumed behavioural changes and appliance efficiency improvements e.g induction hobs
+            (def ApplianceUseImprovement default: 90% on:Simulation)
+        ;define variable for the % of  cooking gains that will result after assumed behavioural changes and appliance efficiency improvements e.g induction hobs
+            (def CookingUseImprovement default: 90% on:Simulation)
 
     ;Set Global variable to reflect lower hotwater usage per person, this changes the variable (25) default in the SAP calculation DHWvol = 36 + 25 x Persons
        ; (context.energy-constants  (constant  (HotWaterConstants09_PERSON_DEPENDENT_VOLUME 23)) )
@@ -600,7 +606,7 @@
                                   (house.flags-match BoilerReplacementCohort )
                                 (house.is-suitable-for (measure.heat-pump type: AirSource))
                                 (house.has-boiler)
-                                (> (house.space-heatingsystem-age) 20 )
+                                (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                             )
                             (all-houses)
                            )
@@ -619,7 +625,7 @@
                (apply name: HybridBoilerReplacement
                       to: (filter (all
                                 (house.has-boiler)
-                                (> (house.space-heatingsystem-age) 20 )
+                                (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                                       (house.flags-match BoilerReplacementCohort  !BoilerReplacementASHP)
                                       )
                                   )
@@ -637,7 +643,7 @@
               ; apply retrofits to the cohort
               (apply name:VentilationRetrofit 
 
-                     (measure.install-draught-proofing proportion: 1)
+                     (measure.install-draught-proofing proportion: 100%)
                      (house.flag VentRetrofit)
                   to: (house.flags-match RetroFitCohortFlag
                      )
@@ -667,6 +673,15 @@
               ; the function used applies to the annual energy use
                     (apply name: ApplianceImprovement_Retrofit
                (measure.set-adjustment-terms adjustment-type: Appliances constant-term: 0 linear-factor: ApplianceUseImprovement)
+                 (measure.lighting proportion-led:100% ) 
+                  to: (house.flags-match RetroFitCohortFlag
+                     )
+               )
+              
+               ; Efficiency in Cooking appliances in RetrofitBuild
+              ; the function used applies to the annual energy use
+                    (apply name: CookingImprovement_Retrofit
+               (measure.set-adjustment-terms adjustment-type: Cooking constant-term: 0 linear-factor: CookingUseImprovement)
                  
                   to: (house.flags-match RetroFitCohortFlag
                      )

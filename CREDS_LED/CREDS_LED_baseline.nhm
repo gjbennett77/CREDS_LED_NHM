@@ -263,6 +263,12 @@
                        (aggregate.sum  name: SumLightingEnergy                      (house.energy-use by-service: Lighting )    )
                        (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
                        
+                       ;DHW again, the leftovers
+                       (aggregate.sum  name: SumDHWDemand            (house.energy-use by-service: WaterHeating)  )
+                      
+                       (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
+                       (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
+                       
                        )
 )
     
@@ -593,7 +599,7 @@
                                  (filter
                                         (all
                                             (house.has-boiler)
-                                            (> (house.space-heatingsystem-age) 20 )
+                                            (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                                  )
                              ))
                      )

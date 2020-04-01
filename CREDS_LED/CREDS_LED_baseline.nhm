@@ -264,11 +264,11 @@
                        (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
                        
                        ;DHW again, the leftovers
-                       (aggregate.sum  name: SumDHWDemand            (house.energy-use by-service: WaterHeating)  )
+                       (aggregate.sum  name: SumDHWDemand                           (house.energy-use by-service: WaterHeating)  )
                       
-                       (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
+                       (aggregate.sum  name: SumDHWLPGEnergy                        (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
-                       
+                       (aggregate.sum  name: SumSolarThermalDHWEnergy               (house.energy-use by-fuel:Photons by-service: WaterHeating ))
                        )
 )
     
@@ -428,7 +428,7 @@
             ; SAP default U values: 
             ; triple glazing = 1.8 (window) 2.0 (roof window)
             ; double glazing = 2.4 (window) 2.6 (roof window)
-            (measure.lighting proportion-led: 1)                                ; acc. Part La Secton 3.10 'Thermal Bridges'
+            (measure.lighting proportion-led:100%)                                ; acc. Part La Secton 3.10 'Thermal Bridges'
             )
         ; LOFT insulation for houses with LOFT
         (apply
@@ -548,6 +548,16 @@
                   to: (affected-houses) 
                    (send-to-report from: NEW-build-stats-annual #StandardAggregates_Baseline)
                   )
+          ; Set internal set point temperature in line with scenario philosophy
+            (apply name: HeatingSetpointInitialisation_NewBuild
+                     (action.set-heating-temperatures
+                         living-area-temperature: internalSetpointTemp
+                         rest-of-dwelling-temperature: internalSetpointTemp)
+                     (action.reduced-internal-gains)
+                     to: ( filter (house.flags-match !EcoSetPoint_BehaviouralChange_Retro)
+                                              (all-houses)
+                                 )
+                     )
         )
     
 
@@ -570,7 +580,7 @@
                      to: (sample NewBuildAmbition 
                                  (filter 
                                      (all 
-                                         (house.age-is below: 20)
+                                         (house.buildyear-is above: 2000 )
                                          (house.any-wall has-construction: TimberFrame)
                                       )
                           (all-houses)

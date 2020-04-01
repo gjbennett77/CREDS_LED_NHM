@@ -265,7 +265,7 @@
                       
                        (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
-                       
+                       (aggregate.sum  name: SumSolarThermalDHWEnergy               (house.energy-use by-fuel:Photons by-service: WaterHeating ))
                        )
 )
         ;(report.measure-installations name: InstallationsReport)
@@ -426,8 +426,8 @@
       (on.construction
                 (apply
                 to: (filter 
-                            (house.age-is exactly:0)
-                    (affected-houses)
+                         (house.age-is exactly:0)
+                         (affected-houses)
                     )
                 ; SET ALL NEW BUILD properties
                     (action.set-wall-construction wall-type: TimberFrame)
@@ -435,12 +435,12 @@
 
                     (measure.adjust-airchange-devices adjustment: 0 device-type: Vents) 
                     (action.set-thermal-bridging-factor 0.15)                           ; acc. Part La Secton 3.10 'Thermal Bridges'
-                   ; (measure.install-draught-proofing proportion: 1)
-                    (measure.install-glazing frame-type: uPVC insulation-type:Argon   u-value: 2.0 glazing-type: triple) ; Uvalue acc. Part La Secton 2.35 Table 2 'Limiting Fabric parameters'
+                    (measure.install-draught-proofing proportion: 1)
+                    (measure.install-glazing frame-type: uPVC insulation-type:Argon   u-value: 1.8 glazing-type: triple) ; Uvalue acc. Part La Secton 2.35 Table 2 'Limiting Fabric parameters'
             ; SAP default U values: 
             ; triple glazing = 1.8 (window) 2.0 (roof window)
             ; double glazing = 2.4 (window) 2.6 (roof window)
-                    (measure.lighting proportion-led: 1)                                ; acc. Part La Secton 3.10 'Thermal Bridges'
+                    (measure.lighting proportion-led:100%)                                ; acc. Part La Secton 3.10 'Thermal Bridges'
                 )
         ; LOFT insulation for houses with LOFT
           (apply
@@ -578,7 +578,7 @@
                      to: (sample NewBuildAmbition 
                                  (filter 
                                      (all 
-                                         (house.age-is below: 20)
+                                         (house.buildyear-is above: 2000 )
                                          (house.any-wall has-construction: TimberFrame)
                                       )
                           (all-houses)
@@ -594,7 +594,13 @@
                      (house.flag BoilerReplacementCohort)
                      
                   to: (sample RetrofitHeatingSystemInstallationLimit
-                                 (all-houses)
+                                 (filter
+                                    (all
+                                    (house.has-boiler)
+                                    (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
+                                    )
+                                    (all-houses)
+                                )
                      )
                 )
         ;GSHP>ASHP>Hybrid
@@ -605,8 +611,6 @@
                             (all
                                   (house.flags-match BoilerReplacementCohort )
                                 (house.is-suitable-for (measure.heat-pump type: AirSource))
-                                (house.has-boiler)
-                                (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                             )
                             (all-houses)
                            )
@@ -624,8 +628,6 @@
             ; install hybrids boilers to all newly build homes which are on gas
                (apply name: HybridBoilerReplacement
                       to: (filter (all
-                                (house.has-boiler)
-                                (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                                       (house.flags-match BoilerReplacementCohort  !BoilerReplacementASHP)
                                       )
                                   )

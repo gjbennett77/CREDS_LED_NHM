@@ -265,7 +265,7 @@
                       
                        (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
-                       
+                       (aggregate.sum  name: SumSolarThermalDHWEnergy               (house.energy-use by-fuel:Photons by-service: WaterHeating ))
                        )
 )
 
@@ -572,7 +572,7 @@
                      to: (sample NewBuildAmbition 
                                  (filter 
                                      (all 
-                                         (house.age-is below: 20)
+                                         (house.buildyear-is above: 2000 )
                                          (house.any-wall has-construction: TimberFrame)
                                       )
                           (all-houses)
@@ -588,7 +588,13 @@
                      (house.flag BoilerReplacementCohort)
                      
                   to: (sample RetrofitHeatingSystemInstallationLimit
-                                 (all-houses)
+                                 (filter
+                                    (all
+                                    (house.has-boiler)
+                                    (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
+                                    )
+                                    (all-houses)
+                                )
                      )
                 )
         ;GSHP>ASHP>Hybrid
@@ -598,8 +604,6 @@
                             (all
                                 (house.flags-match BoilerReplacementCohort)
                                 (house.is-suitable-for (measure.heat-pump type: GroundSource))
-                                (house.has-boiler)
-                                (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                             )
                             (all-houses)
                            )
@@ -615,8 +619,6 @@
                             (all
                                   (house.flags-match BoilerReplacementCohort !BoilerReplacementGSHP)
                                 (house.is-suitable-for (measure.heat-pump type: AirSource))
-                                (house.has-boiler)
-                                (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                             )
                             (all-houses)
                            )
@@ -628,14 +630,11 @@
                (measure.heating-control type: ThermostaticRadiatorValve)
             )
 
-
         
         ; ONLY or those houses which NHM cant install heat pumps (should be small)
             ; install hybrids boilers to all newly build homes which are on gas
                (apply name: HybridBoilerReplacement
                       to: (filter (all
-                                (house.has-boiler)
-                                (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
                                       (house.flags-match BoilerReplacementCohort !BoilerReplacementGSHP !BoilerReplacementASHP)
                                       )
                                   )

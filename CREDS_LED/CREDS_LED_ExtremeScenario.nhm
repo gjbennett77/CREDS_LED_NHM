@@ -380,7 +380,7 @@
         ;define variable for the conversion rate of homes to adopt the new lower internal temperature setpoint, will be implemented via retrofit/low heat loss buildings
             (def EcoSetpoint_ConversionRate default: 1700000 on:Simulation)
         ;define variable for the the number of houses to be retrofitted each year
-            (def RetrofitAmbition default: 500000 on: Simulation)
+            (def RetrofitAmbition default: 1000000 on: Simulation)
         ;define variable for the number of new build to be constructed annually
             (def NewBuildAmbition default: 0 on: Simulation)
         ;define variable for the number of new HPs to be installed annually (will be installed as part of New Build)
@@ -394,9 +394,9 @@
         ;define variable for increase in retrofits possible per year, i.e. ramp rate of installations.  Used up to the #RetrofitAmbition cap
             (def RetrofitRampRate default:50000 on:Simulation)
         ;define variable for the % of appliance and cooking gains that will result after assumed behavioural changes and appliance efficiency improvements e.g induction hobs
-            (def ApplianceUseImprovement default: 80% on:Simulation)
+            (def ApplianceUseImprovement default: 0.8 on:Simulation)
         ;define variable for the % of appliance and cooking gains that will result after assumed behavioural changes and appliance efficiency improvements e.g induction hobs
-            (def CookingUseImprovement default: 80% on:Simulation)
+            (def CookingUseImprovement default: 0.8 on:Simulation)
     
     ;Set Global variable to reflect lower hotwater usage per person, this changes the variable (25) default in the SAP calculation DHWvol = 36 + 25 x Persons
        ; (context.energy-constants  (constant  (HotWaterConstants09_PERSON_DEPENDENT_VOLUME 23)) )
@@ -688,7 +688,7 @@
                 ; the function used applies to the annual energy use
                     (apply name: ApplianceImprovement_Retrofit
                (measure.set-adjustment-terms adjustment-type: Appliances constant-term: 0 linear-factor: ApplianceUseImprovement)
-                 (measure.lighting proportion-led:100% ) 
+                 (measure.lighting proportion-led:1.0 ) 
                   to: (house.flags-match RetroFitCohortFlag
                      )
                )

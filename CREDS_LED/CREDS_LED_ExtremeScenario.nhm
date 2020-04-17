@@ -261,7 +261,7 @@
                        (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
                        
                        ;DHW again, the leftovers
-                       (aggregate.sum  name: SumDHWDemand            (house.energy-use by-service: WaterHeating)  )
+                       (aggregate.sum  name: SumDHWDemand            (house.energy-use by-service: WaterHeating )  )
                       
                        (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
@@ -397,6 +397,26 @@
             (def ApplianceUseImprovement default: 0.8 on:Simulation)
         ;define variable for the % of appliance and cooking gains that will result after assumed behavioural changes and appliance efficiency improvements e.g induction hobs
             (def CookingUseImprovement default: 0.8 on:Simulation)
+        ;define variable for the start year of the boiler->HP transition S curve
+            (def Boiler-HPTransitionSTART default: 2025 on: Simulation)
+        ;define varialble for the duration of the boioer-HP transition
+            (def Boiler-HPTransitionDURATION default:10  on: Simulation)
+    
+        ;Calculate relevant cohort sizes for Boiler/BP, outputs the fraction of the Total Boiler replacement cohort which should be HP
+        ; i.e. goes from 0 to 1 in an S-curve
+              (def-function  Boiler_HP_replacement_RampCurve
+                            
+                   (function.case 
+                            default: 0
+                            (when
+                                (< sim.year  Boiler-HPTransitionSTART)
+                                    0)
+                            (when
+                                (>= sim.year  Boiler-HPTransitionSTART)
+                                    (/ 1 (+ 1 (exp (+ 5 (- (* (/ 10 Boiler-HPTransitionDURATION) (- (sim.year) Boiler-HPTransitionSTART))))))))
+                                ) 
+                            
+                 )
     
     ;Set Global variable to reflect lower hotwater usage per person, this changes the variable (25) default in the SAP calculation DHWvol = 36 + 25 x Persons
        ; (context.energy-constants  (constant  (HotWaterConstants09_PERSON_DEPENDENT_VOLUME 23)) )
@@ -587,7 +607,7 @@
                 (apply name:BoilerReplacementCohort
                      (house.flag BoilerReplacementCohort)
                      
-                  to: (sample RetrofitHeatingSystemInstallationLimit
+                  to: (sample (* RetrofitHeatingSystemInstallationLimit (- 1 Boiler_HP_replacement_RampCurve))
                                  (filter
                                     (all
                                     (house.has-boiler)
@@ -597,12 +617,40 @@
                                 )
                      )
                 )
-        ;GSHP>ASHP>Hybrid
+              
+              (apply name:HP_ReplacementCohort
+                     (house.flag HP_ReplacementCohort)
+                     
+                  to: (sample (* RetrofitHeatingSystemInstallationLimit Boiler_HP_replacement_RampCurve)
+                                 (filter
+                                    (all
+                                    (house.has-boiler)
+                                    (> (+ house.space-heatingsystem-age (- sim.year 2013 )) 15 )
+                                    )
+                                    (all-houses)
+                                )
+                     )
+                )
+; Until the workforce and market transitions to HP installations then Boilers will be replaced with boilers
+            (apply name: BoilerReplacingOLDboilers
+                     to:  (filter
+                            (all
+                                (house.flags-match BoilerReplacementCohort)
+                            )
+                            (all-houses)
+                           )
+                          
+               (measure.combi-boiler summer-efficiency: 0.92 winter-efficiency: 0.92
+                               update-flags: [BoilerReplacementBoiler !BoilerReplacementCohort])
+               (measure.heating-control type: TimeTemperatureZoneControl)
+               (measure.heating-control type: ThermostaticRadiatorValve)
+            )
+        ;HP cohort replaced according to : GSHP>ASHP>Hybrid
                           ; GROUND Source HPs for ALL suitable new builds which DO NOT already have an ASHP, i.e. still have a boiler
         (apply name: GSHPreplacingOLDboilers
                      to:  (filter
                             (all
-                                (house.flags-match BoilerReplacementCohort)
+                                (house.flags-match HP_ReplacementCohort)
                                 (house.is-suitable-for (measure.heat-pump type: GroundSource))
                             )
                             (all-houses)
@@ -617,7 +665,7 @@
             (apply  name: ASHPreplacingOLDboilers
                      to: (filter
                             (all
-                                  (house.flags-match BoilerReplacementCohort !BoilerReplacementGSHP)
+                                  (house.flags-match HP_ReplacementCohort !BoilerReplacementGSHP)
                                 (house.is-suitable-for (measure.heat-pump type: AirSource))
                             )
                             (all-houses)
@@ -635,7 +683,7 @@
             ; install hybrids boilers to all newly build homes which are on gas
                (apply name: HybridBoilerReplacement
                       to: (filter (all
-                                      (house.flags-match BoilerReplacementCohort !BoilerReplacementGSHP !BoilerReplacementASHP)
+                                      (house.flags-match HP_ReplacementCohort !BoilerReplacementGSHP !BoilerReplacementASHP)
                                       )
                                   )
                       (measure.heat-pump hybrid-fuel: MainsGas hybrid-efficiency: 0.92 )
@@ -688,7 +736,7 @@
                 ; the function used applies to the annual energy use
                     (apply name: ApplianceImprovement_Retrofit
                (measure.set-adjustment-terms adjustment-type: Appliances constant-term: 0 linear-factor: ApplianceUseImprovement)
-                 (measure.lighting proportion-led:1.0 ) 
+                 (measure.lighting proportion-led:100% )
                   to: (house.flags-match RetroFitCohortFlag
                      )
                )

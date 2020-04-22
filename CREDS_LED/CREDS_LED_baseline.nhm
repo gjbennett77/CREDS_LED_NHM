@@ -390,6 +390,14 @@
     (def NewSolarThermalAmbition default: 0.25 on:simulation)
     ;define variable for increase in retrofits possible per year, i.e. ramp rate of installations.  Used up to the #RetrofitAmbition cap
     (def RetrofitRampRate default:50000 on:Simulation)
+    ;define variable for the baseline (i.e. existing at start of scenario) level of home working, %
+    (def HomeWorkingBase default: 0.05 on:Simulation) ;5%
+    ;define variable for the annual increase (i.e. existing at start of scenario) level of home working, %
+    (def HomeWorkingAnnualIncrease default: 0.000 on:Simulation) ; no increase in BAU Baseline
+    ;define variable for the baseline (i.e. existing at start of scenario) level of home working, %
+    (def 4DayWorkingBase default: 0.0 on:Simulation) ;0% 
+    ;define variable for the annual increase (i.e. existing at start of scenario) level of home working, %
+    (def 4DayWorkingAnnualIncrease default: 0.000 on:Simulation) ; no increase in BAU Baseline 
     
     ;; set the heating temperature to lower value to mimic an avoidance of comfort taking
     ; internal temperatures are actually already constant in UKTM, so this is a demand reduction inadvertently included
@@ -406,6 +414,47 @@
                      (action.reduced-internal-gains)
                      to: ( filter (house.flags-match !EcoSetPoint_BehaviouralChange_Retro)
                                               (all-houses)
+                                 )
+                     )
+              ; set Base Home working levels, this affects the heating schedule
+                    (apply name: HomeWorkingInitilialisation
+                     (action.set-heating-schedule update-flags: HomeWorking
+                          (schedule 
+                             on: AllDays
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                         )
+                     to: (sample HomeWorkingBase 
+                                 (all-houses)
+                                 )
+                     )
+              ; set Base 4 Day working week levels this affects the hearting schedule
+                    (apply name: 4DayWorkingInitilialisation
+                     (action.set-heating-schedule update-flags: 4DayWorking
+                          (schedule 
+                             on: Alldays
+                             (heating 
+                                 between: 7
+                                 and: 9))
+                          (schedule 
+                             on: Alldays
+                             (heating 
+                                 between: 16
+                                 and: 23))
+                          (schedule 
+                             on: Friday
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                          (schedule 
+                             on: Weekends
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                         )
+                     to: (sample 4DayWorkingBase 
+                                 (all-houses)
                                  )
                      )
               )

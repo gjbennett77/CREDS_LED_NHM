@@ -401,6 +401,15 @@
             (def Boiler-HPTransitionSTART default: 2025 on: Simulation)
         ;define varialble for the duration of the boioer-HP transition
             (def Boiler-HPTransitionDURATION default:10  on: Simulation)
+        ;define variable for the baseline (i.e. existing at start of scenario) level of home working, %
+            (def HomeWorkingBase default: 0.05 on:Simulation) ;5%
+        ;define variable for the annual increase (i.e. existing at start of scenario) level of home working, %
+            (def HomeWorkingAnnualIncrease default: 0.0024 on:Simulation) ; no increase in BAU Baseline
+        ;define variable for the baseline (i.e. existing at start of scenario) level of home working, %
+            (def 4DayWorkingBase default: 0.0 on:Simulation) ;0% 
+        ;define variable for the annual increase (i.e. existing at start of scenario) level of home working, %
+            (def 4DayWorkingAnnualIncrease default: 0.0042 on:Simulation) ; no increase in BAU Baseline 
+    
     
         ;Calculate relevant cohort sizes for Boiler/BP, outputs the fraction of the Total Boiler replacement cohort which should be HP
         ; i.e. goes from 0 to 1 in an S-curve
@@ -437,6 +446,48 @@
                      (action.reduced-internal-gains)
                      to: ( filter (house.flags-match !EcoSetPoint_BehaviouralChange_Retro)
                                               (all-houses)
+                                 )
+                     )
+
+               ; set Base Home working levels, this affects the heating schedule
+                    (apply name: HomeWorkingInitilialisation
+                     (action.set-heating-schedule update-flags: HomeWorking
+                          (schedule 
+                             on: AllDays
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                         )
+                     to: (sample HomeWorkingBase 
+                                 (all-houses)
+                                 )
+                     )
+              ; set Base 4 Day working week levels this affects the hearting schedule
+                    (apply name: 4DayWorkingInitilialisation
+                     (action.set-heating-schedule update-flags: 4DayWorking
+                          (schedule 
+                             on: Alldays
+                             (heating 
+                                 between: 7
+                                 and: 9))
+                          (schedule 
+                             on: Alldays
+                             (heating 
+                                 between: 16
+                                 and: 23))
+                          (schedule 
+                             on: Friday
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                          (schedule 
+                             on: Weekends
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                         )
+                     to: (sample 4DayWorkingBase 
+                                 (all-houses)
                                  )
                      )
               )
@@ -770,6 +821,50 @@
                      to: (sample EcoSetpoint_ConversionRate 
                                  (filter (all(house.buildyear-is below: 2019)(house.flags-match FabricRetrofit)(< 100 (house.heat-loss)))
                                               (all-houses))
+                                 )
+                     )
+              
+           ; set INCREASE of Home working levels, this affects the heating schedule
+                    (apply name: HomeWorkingIncrease
+                      (action.set-heating-schedule update-flags: HomeWorking
+                          (schedule 
+                             on: AllDays
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                         )
+                     to: (sample HomeWorkingAnnualIncrease 
+                                (filter (house.flags-match !HomeWorking)
+                                     (all-houses))
+                                 )
+                     )
+              ; set INCREASE of 4 Day working week levels this affects the heating schedule
+                    (apply name: 4DayWorkingIncrease
+                     (action.set-heating-schedule update-flags: 4DayWorking
+                          (schedule 
+                             on: Alldays
+                             (heating 
+                                 between: 7
+                                 and: 9))
+                          (schedule 
+                             on: Alldays
+                             (heating 
+                                 between: 16
+                                 and: 23))
+                          (schedule 
+                             on: Friday
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                          (schedule 
+                             on: Weekends
+                             (heating 
+                                 between: 7
+                                 and: 23))
+                         )
+                     to: (sample 4DayWorkingAnnualIncrease 
+                                 (filter (house.flags-match !4DayWorking)
+                                          (all-houses) )
                                  )
                      )
               ;DE-select cohort for annual retrofit by removing Flag them (

@@ -546,7 +546,7 @@
                         ; (sim.year-is above:  2030)
                             )
                         )
-               (measure.heat-pump type: GroundSource  cop: 3.5 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+               (measure.heat-pump type: GroundSource  cop: 1 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
                                update-flags: newBuildGSHP )
                (measure.heating-control type: TimeTemperatureZoneControl)
                (measure.heating-control type: ThermostaticRadiatorValve)
@@ -561,7 +561,7 @@
                                     )
                         )
                       
-               (measure.heat-pump type: AirSource  ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+               (measure.heat-pump type: AirSource  cop: 1 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
                                update-flags: newBuildASHP )
                (measure.heating-control type: TimeTemperatureZoneControl)
                (measure.heating-control type: ThermostaticRadiatorValve)
@@ -707,7 +707,7 @@
                             (all-houses)
                            )
                           
-               (measure.heat-pump type: GroundSource  cop: 3.5 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+               (measure.heat-pump type: GroundSource  cop: 1 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
                                update-flags: BoilerReplacementGSHP )
                (measure.heating-control type: TimeTemperatureZoneControl)
                (measure.heating-control type: ThermostaticRadiatorValve)
@@ -723,7 +723,7 @@
                            )
                           
                       
-               (measure.heat-pump type: AirSource  cop:2.5 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
+               (measure.heat-pump type: AirSource  cop:1 ;cylinder-insulation: 100  size:(size (house.peak-load external-temperature: -2 internal-temperature: 22) min: 1 max: 10
                                update-flags: BoilerReplacementASHP )
                (measure.heating-control type: TimeTemperatureZoneControl)
                (measure.heating-control type: ThermostaticRadiatorValve)
@@ -737,7 +737,7 @@
                                       (house.flags-match HP_ReplacementCohort !BoilerReplacementGSHP !BoilerReplacementASHP)
                                       )
                                   )
-                      (measure.heat-pump hybrid-fuel: MainsGas hybrid-efficiency: 0.92 )
+                      (measure.heat-pump hybrid-fuel: MainsGas hybrid-efficiency: 0.92 cop: 1)
                       (measure.heating-control type: TimeTemperatureZoneControl)
                       (measure.heating-control type: ThermostaticRadiatorValve)
                   )

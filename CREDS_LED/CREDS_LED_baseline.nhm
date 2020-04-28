@@ -545,7 +545,7 @@
                                     )
                                 )
                         )
-            (measure.heat-pump type: AirSource ; cylinder-insulation: 100  size:(size (house.peak-load) min: 1 max: 10)
+            (measure.heat-pump type: AirSource cop: 1; cylinder-insulation: 100  size:(size (house.peak-load) min: 1 max: 10)
                                update-flags: newBuildASHP )
             (measure.heating-control type: TimeTemperatureZoneControl)
             (measure.heating-control type: ThermostaticRadiatorValve)
@@ -559,7 +559,7 @@
                             (sim.year-is above:  2030)
                             )
                         )
-            (measure.heat-pump type: AirSource  ;cylinder-insulation: 100  size:(size (house.peak-load) min: 1 max: 10
+            (measure.heat-pump type: AirSource  cop: 1;cylinder-insulation: 100  size:(size (house.peak-load) min: 1 max: 10
                                update-flags: newBuildASHP )
             (measure.heating-control type: TimeTemperatureZoneControl)
             (measure.heating-control type: ThermostaticRadiatorValve)
@@ -573,7 +573,7 @@
                             (sim.year-is above:  2030)
                             )
                         )
-            (measure.heat-pump type: GroundSource  ;cylinder-insulation: 100  size:(size (house.peak-load) min: 1 max: 10
+            (measure.heat-pump type: GroundSource  cop: 1;cylinder-insulation: 100  size:(size (house.peak-load) min: 1 max: 10
                                update-flags: newBuildGSHP )
             (measure.heating-control type: TimeTemperatureZoneControl)
             (measure.heating-control type: ThermostaticRadiatorValve)

@@ -377,9 +377,9 @@
         ;define variable for the heating internal set point temperature
             (def internalSetpointTemp default: 21 on: simulation)
         ;define variable for the reduced heating internal set point temperature
-            (def EcoInternalSetpointTemp default: 19.5 on: Simulation)
+            (def EcoInternalSetpointTemp default: 21 on: Simulation)
         ;define variable for the conversion rate of homes to adopt the new lower internal temperature setpoint, will be implemented via retrofit/low heat loss buildings
-            (def EcoSetpoint_ConversionRate default: 500000 on:Simulation)
+            (def EcoSetpoint_ConversionRate default: 0 on:Simulation)
         ;define variable for the the number of houses to be retrofitted each year
             (def RetrofitAmbition default: 250000 on: Simulation)
         ;define variable for the number of new build to be constructed annually

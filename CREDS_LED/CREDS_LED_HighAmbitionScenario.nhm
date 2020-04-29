@@ -383,7 +383,7 @@
         ;define variable for the the number of houses to be retrofitted each year
             (def RetrofitAmbition default: 250000 on: Simulation)
         ;define variable for the number of new build to be constructed annually
-            (def NewBuildAmbition default: 190000 on: Simulation)
+            (def NewBuildAmbition default: 0 on: Simulation)
         ;define variable for the number of new HPs to be installed annually (will be installed as part of New Build)
             (def NewHPAmbition default: 20000 on: Simulation) ; same as NewBuildAmbiton
          ;define variable for the number of PV installations to be installed annually

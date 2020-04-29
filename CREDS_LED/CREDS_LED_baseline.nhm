@@ -381,7 +381,7 @@
     ;define variable for the the number of houses to be retrofitted each year
     (def RetrofitAmbition default: 100000 on: simulation)
     ;define variable for the number of new build to be constructed annually
-    (def NewBuildAmbition default: 190000 on: simulation)
+    (def NewBuildAmbition default: 0 on: simulation)
     ;define variable for the number of new HPs to be installed annually (will be installed as part of New Build)
     (def NewHPAmbition default: 20000 on: simulation)
     ;define variable for maximum heating system installations per year, this is derived from the current rate of boiler installations of 1.7million per year curently but  closer to 1.5 historically

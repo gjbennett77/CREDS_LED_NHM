@@ -261,7 +261,7 @@
                        (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
                        
                        ;DHW again, the leftovers
-                       (aggregate.sum  name: SumDHWDemand            (house.energy-use by-service: WaterHeating )  )
+                       (aggregate.sum  name: SumDHWDemand            (house.energy-calculation-step WaterHeating_EnergyContent)  )
                       
                        (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
@@ -359,7 +359,8 @@
                 ;Misc
                 (column name: SumFloorArea value: (house.total-floor-area)                      summary: sum)
                 (column name: MeanFloorArea value: (house.total-floor-area)                     summary: mean)
-                      )
+                      
+                )
     
         (def-report MIT_Heat_Demand (cut name: cutandshut Flags) record-changes: False
                 (column name: aacode value: (house.survey-code))
@@ -382,7 +383,13 @@
         ;define variable for the the number of houses to be retrofitted each year
             (def RetrofitAmbition default: 1000000 on: Simulation)
         ;define variable for the number of new build to be constructed annually
-            (def NewBuildAmbition default: 0 on: Simulation)
+    ; COVID-19 amendment to the scenario, where previously the Extreme Scenario had 0 new build properties
+    ; conversion of redundant office space (due to home working etc) is estimated to result in
+    ;  34.3 million m2 by 2050 in the baseline (51 in High Ambition, 62 in the radical change scenario)
+    ; Converting this space into 2 bed, 1 storey flats at 10% above nationally described space standards would create 800,000 new flats by 2050
+    ;  under this scenario. This would assume the average size of 77.5 m2 per flat.
+    ;  Spreading this out over the 30 years would give a build rate of 26,500 new homes a year. 
+            (def NewBuildAmbition default: 26500 on: Simulation)
         ;define variable for the number of new HPs to be installed annually (will be installed as part of New Build)
             (def NewHPAmbition default: 20000 on: Simulation) ; same as NewBuildAmbiton
          ;define variable for the number of PV installations to be installed annually
@@ -637,14 +644,18 @@
                           (filter (house.age-is above: 60) (all-houses))
                      )
                 )
-               ;; Build and define new build characteristics here
+               ; Build and define new build characteristics here
               (apply (action.construct name:newbuildConstruction)
                     (house.flag newBuild)
                      to: (sample NewBuildAmbition 
                                  (filter 
                                      (all 
                                          (house.buildyear-is above: 2000 )
-                                         (house.any-wall has-construction: TimberFrame)
+                                         ;(house.any-wall has-construction: TimberFrame)
+                                     (house.built-form-is PurposeBuiltLowRiseFlat)
+                                     (house.is-suitable-for (measure.heat-pump type: AirSource))
+                                     (< house.total-floor-area 78)
+                                     (> house.total-floor-area 77)
                                       )
                           (all-houses)
                                   )
@@ -883,7 +894,39 @@
               ;    send-to-report #InstallationsReport )
               
               ; GENERAL aggregation Housing Stock tracking
-              (aggregate name: HousingStockTracker_Extreme
+              (aggregate name: HousingStockTrackerALL_Extreme_Form_Walls
+                         divide-by: [(house.flags-match FabricRetrofit)
+                                     (house.all-walls has-construction: AnyCavity)
+                                     (house.all-walls has-construction: AnySolid)
+                                     (house.flags-match HomeWorking)
+                                     (house.built-form)]
+                    (aggregate.count name:TotalPopulation)
+                         )
+               (aggregate name: HousingStockTrackerNEW_Extreme_Form_Walls
+                         over: (filter (house.buildyear-is above: 2019)(all-houses))   
+                         divide-by: [(house.flags-match FabricRetrofit)
+                                     (house.all-walls has-construction: AnyCavity)
+                                     (house.all-walls has-construction: AnySolid)
+                                     (house.flags-match HomeWorking)
+                                     (house.built-form)]
+                    (aggregate.count name:TotalPopulation)
+                         )
+               (aggregate name: HousingStockTrackerOLD_Extreme_Form_Walls
+                         over: (filter (house.buildyear-is below: 2019)(all-houses))   
+                         divide-by: [(house.flags-match FabricRetrofit)
+                                     (house.all-walls has-construction: AnyCavity)
+                                     (house.all-walls has-construction: AnySolid)
+                                     (house.flags-match HomeWorking)
+                                     (house.built-form)]
+                    (aggregate.count name:TotalPopulation)
+                         )
+               (aggregate name: HousingStockTracker_Extreme_Flag
+                            divide-by: [(house.flags-match FabricRetrofit)
+                                        (house.flags-match HomeWorking)]
+                            (aggregate.count name:TotalPopulation)
+                         )
+               (aggregate name: HousingStockTrackerOffGG_Extreme
+                         over: (filter (none house.is-on-gas )(all-houses))
                     (aggregate.count name:TotalPopulation)
                          )
                (apply
@@ -935,27 +978,42 @@
                (aggregate 
                   name: ALL-build-aggregates-ONgasGrid_Extreme
                   over: (filter (house.is-on-gas)(all-houses))
-                  (AggregateTemplates/StandardAggregatesExtreme) 
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
+                  (AggregateTemplates/StandardAggregatesExtreme)
                   )
                (aggregate 
                   name: ALL-build-aggregates-OFFgasGrid_Extreme
                   over: (filter (none house.is-on-gas )(all-houses))
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                   (AggregateTemplates/StandardAggregatesExtreme)
                   )
               (aggregate
                   name: OLD-build-aggregates_Extreme
                   over: (filter (house.buildyear-is below: 2019)(all-houses))
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                   (AggregateTemplates/StandardAggregatesExtreme) 
                   )
               (aggregate
                   name: NEW-build-aggregates_Extreme
                   over: (filter (house.buildyear-is above: 2019)(all-houses))
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                (AggregateTemplates/StandardAggregatesExtreme)
                   )
               
               (aggregate
                   name: ALL-build-embodiedCarbs_Extreme 
                   over: (all-houses)
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                  (AggregateTemplates/EmbodiedCarbonStatsExtreme) 
                   )
               
@@ -967,35 +1025,14 @@
               
               (aggregate
                   name: ALL-build-aggregates_Extreme
-                  over: (all-houses) 
+                  over: (all-houses)
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                     (AggregateTemplates/StandardAggregatesExtreme)
                   )
-              (aggregate
-                  name: ALL-build-embodiedCarbs_Extreme 
-                  over: (all-houses)
-                 (AggregateTemplates/EmbodiedCarbonStatsExtreme) 
-                  )
-              
-              
-          ;  name: ALL-build-stats-dividedby-form
-          ;  over: (all-houses)
-          ;  divide-by: (house.built-form)
-              
-        ; AGGREGATE COUNT and PROPERTIES of ALL buildings, divided by Wall Type
-            ;name: ALL-build-stats-dividedby-WallType
-            ;over: (all-houses)
-            ;divide-by: (house.is-suitable-for (measure.wall-insulation suitable-construction: AnyCavity thickness:10)  )
-        
-         ; AGGREGATE COUNT and PROPERTIES of ALL buildings  divided by the Morphology (type of location, village, Urban etc....)
-            ;name: ALL-build-stats-dividedby-Morphology
-            ;over: (all-houses)
-            ;divide-by: (house.morphology )
-              
-         ; AGGREGATE COUNT and PROPERTIES of ALL buildings  divided by the heating fuel 
-            ;name: ALL-build-stats-dividedby-fuel
-            ;over: (all-houses)
-            ;divide-by: (house.heating-fuel)
-              
+
+
               
               )
               

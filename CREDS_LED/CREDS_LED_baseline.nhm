@@ -264,7 +264,7 @@
                        (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
                        
                        ;DHW again, the leftovers
-                       (aggregate.sum  name: SumDHWDemand                           (house.energy-use by-service: WaterHeating)  )
+                       (aggregate.sum  name: SumDHWDemand            (house.energy-calculation-step WaterHeating_EnergyContent)  )
                       
                        (aggregate.sum  name: SumDHWLPGEnergy                        (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
@@ -695,25 +695,56 @@
                 )
               ;;GLOBAL REPORTS
               ; GENERAL aggregation Housing Stock tracking
-              (aggregate name: HousingStockTracker_Baseline
-                         (aggregate.count name:TotalPopulation)
+              ; GENERAL aggregation Housing Stock tracking
+              (aggregate name: HousingStockTrackerALL_Baseline_Form_Walls
+                         divide-by: [(house.flags-match FabricRetrofit)
+                                     (house.all-walls has-construction: AnyCavity)
+                                     (house.all-walls has-construction: AnySolid)
+                                     (house.flags-match HomeWorking)
+                                     (house.built-form)]
+                    (aggregate.count name:TotalPopulation)
                          )
-              (apply
+               (aggregate name: HousingStockTrackerNEW_Baseline_Form_Walls
+                         over: (filter (house.buildyear-is above: 2019)(all-houses))   
+                         divide-by: [(house.flags-match FabricRetrofit)
+                                     (house.all-walls has-construction: AnyCavity)
+                                     (house.all-walls has-construction: AnySolid)
+                                     (house.flags-match HomeWorking)
+                                     (house.built-form)]
+                    (aggregate.count name:TotalPopulation)
+                         )
+               (aggregate name: HousingStockTrackerOLD_Baseline_Form_Walls
+                         over: (filter (house.buildyear-is below: 2019)(all-houses))   
+                         divide-by: [(house.flags-match FabricRetrofit)
+                                     (house.all-walls has-construction: AnyCavity)
+                                     (house.all-walls has-construction: AnySolid)
+                                     (house.flags-match HomeWorking)
+                                     (house.built-form)]
+                    (aggregate.count name:TotalPopulation)
+                         )
+               (aggregate name: HousingStockTracker_Baseline_Flag
+                            divide-by: [(house.flags-match FabricRetrofit)
+                                        (house.flags-match HomeWorking)]
+                            (aggregate.count name:TotalPopulation)
+                         )
+               (aggregate name: HousingStockTrackerOffGG_Baseline
+                         over: (filter (none house.is-on-gas )(all-houses))
+                    (aggregate.count name:TotalPopulation)
+                         )
+               (apply
                   to:(all-houses) name: allHousesAnnualReport_Baseline
                   (send-to-report #MIT_Heat_Demand) 
                   (probe.aggregate name: stock_energy_aggregate
-                                   capture: [(aggregate.sum (house.energy-use))]
+                  capture: [(aggregate.sum (house.energy-use))]
                                    action.do-nothing)
-                  )
-              (apply
-                  to: (house.flags-match FabricRetrofit)   name: FabricRetrofitAnnualReport
+                )
+               (apply
+                  to: (house.flags-match FabricRetrofit)   name: FabricRetrofitAnnualReport_Baseline
                   (send-to-report #MIT_Heat_Demand) 
                   (probe.aggregate name: stock_energy_aggregate_Baseline
-                                   capture: [(aggregate.sum (house.energy-use))]
+                  capture: [(aggregate.sum (house.energy-use))]
                                    action.do-nothing)
-                  )
-   
-
+                )
               
               ; AGGREGATE stats for total power needed to provide GAS and ELEC year on year
               (aggregate
@@ -749,27 +780,42 @@
               (aggregate 
                   name: ALL-build-aggregates-ONgasGrid_Baseline
                   over: (filter (house.is-on-gas)(all-houses))
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                   (AggregateTemplates/StandardAggregatesBaseline) 
                   )
                (aggregate 
                   name: ALL-build-aggregates-OFFgasGrid_Baseline
                   over: (filter (none house.is-on-gas )(all-houses))
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                   (AggregateTemplates/StandardAggregatesBaseline)
                   )
               (aggregate
                   name: OLD-build-aggregates_Baseline
                   over: (filter (house.buildyear-is below: 2019)(all-houses))
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                   (AggregateTemplates/StandardAggregatesBaseline) 
                   )
               (aggregate
                   name: NEW-build-aggregates_Baseline
                   over: (filter (house.buildyear-is above: 2019)(all-houses))
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                (AggregateTemplates/StandardAggregatesBaseline)
                   )
               
               (aggregate
                   name: NEW-build-embodiedCarbs_Baseline 
                   over: (filter (house.buildyear-is above: 2019)(all-houses))
+              divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                  (AggregateTemplates/EmbodiedCarbonStatsBaseline) 
                   )
               
@@ -780,15 +826,22 @@
                   )
               
               (aggregate
-                  name: ALL-build-aggregates_Baseline
-                  over: (all-houses) 
-                    (AggregateTemplates/StandardAggregatesBaseline)
-                  )
-              (aggregate
                   name: ALL-build-embodiedCarbs_Baseline 
                   over: (all-houses)
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
                  (AggregateTemplates/EmbodiedCarbonStatsBaseline) 
                   )
+              (aggregate
+                  name: ALL-build-aggregates_Baseline
+                  over: (all-houses)
+                 divide-by: [(house.all-walls has-construction: AnyCavity)
+                              (house.all-walls has-construction: AnySolid)
+                              house.built-form]
+                    (AggregateTemplates/StandardAggregatesBaseline)
+                  )
+
               
                )
     ;REPEAT annual aggregates and reporting for CHANGES to housing stock (sits outside the previous 'on.date(regulary))

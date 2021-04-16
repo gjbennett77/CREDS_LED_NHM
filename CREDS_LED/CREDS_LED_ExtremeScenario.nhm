@@ -191,62 +191,39 @@
                        (aggregate.mean  name: MeanTotalHeatLossCoeff                    (house.energy-calculation-step HeatTransferCoefficient))
                        (aggregate.sum   name: TotalHeatLossParam                        (house.energy-calculation-step HeatLossParameter))
                        (aggregate.mean  name: MeanTotalEnergyIntensity_perM2            (/ house.energy-use  house.total-floor-area ))
-                                        
                        (aggregate.mean  name: MeanPrimarySpaceHeatEnergyIntensity_perM2         (/ (house.energy-use by-service: PrimarySpaceHeating)  house.total-floor-area ) )
                        (aggregate.mean  name: MeanSecondarySpaceHeatEnergyIntensity_perM2       (/ (house.energy-use by-service: SecondarySpaceHeating)  house.total-floor-area ) )
                        (aggregate.mean  name: MeanSpaceHeatDemandIntensity_perM2                (/ (house.energy-calculation-step SpaceHeating)  house.total-floor-area ))
                        (aggregate.mean  name: MeanPrimarySpaceHeatGASEnergyIntensity_perM2      (/ (house.energy-use by-service: PrimarySpaceHeating by-fuel: MainsGas)  house.total-floor-area ) )
                        (aggregate.mean  name: MeanPrimarySpaceHeatELECEnergyIntensity_perM2     (/ (house.energy-use by-service: PrimarySpaceHeating by-fuel: Electricity)  house.total-floor-area ) )
-         
                        (aggregate.mean  name: MeanSAPrating                             (sap/score) )
                        (aggregate.where (house.has-solar-photovoltaic)   name: CountOfPV                                 aggregate.count)
                        (aggregate.where (house.has-solar-thermal)        name: CountOfSolarThermal                       aggregate.count)
-                       
                        ; DHW metrics, added 22-01-2020
                        (aggregate.mean  name: MeanDHWHeatDemandIntensity_perM2                  (/ (house.energy-use by-service: WaterHeating)  house.total-floor-area ) )
                        (aggregate.mean  name: MeanDHW_GASEnergyIntensity_perM2                  (/ (house.energy-use by-service: WaterHeating by-fuel: MainsGas)  house.total-floor-area ))
                        (aggregate.mean  name: MeanDHW_ELECEnergyIntensity_perM2                 (/ (house.energy-use by-service: WaterHeating by-fuel: Electricity)  house.total-floor-area ))
                        (aggregate.sum   name: SumDHW_GASEnergy                         (house.energy-use by-service: WaterHeating by-fuel: MainsGas) )
                        (aggregate.sum   name: SumDHW_ELECEnergy                        (house.energy-use by-service: WaterHeating by-fuel: Electricity) )
-                  
                         ;Population and occupancy
                        (aggregate.sum   name: SumPeoplePopulation                               (house.number-of-occupants))
                        (aggregate.mean  name: MeanOccupancy                                     (house.number-of-occupants) )
-                
                         ;Ventilation
                        (aggregate.mean  name: ACH                                               (house.air-change-rate))
                        (aggregate.mean  name: VentilationHeatLoss                               (house.energy-calculation-step VentilationHeatLoss)) 
-                
                         ;Health  
                         (aggregate.mean name: MeanHealth-sit                                    (house.sit))
                         (aggregate.sum  name: SumHealth-sit                                     (house.sit))
                         (aggregate.mean name: MeanHealth-sit-rebate                             (house.sit-rebate rebate: 500 temperature: 18))
                         (aggregate.sum  name: SumHealth-sit-reb                                 (house.sit-rebate rebate: 500 temperature: 18))
-                      ;  (aggregate.mean name: MeanHealth-impact-mortality  (health-impact-of
-                      ;                                           horizon: 10
-                      ;                                           offset: 0
-                                                                 
-                      ;                                           on: Mortality
-                       ;                                          due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
-                      ;                                           ))
-                      ;  (aggregate.sum name: SumHealth-impact-mortality  (health-impact-of
-                      ;                                           horizon: 10
-                      ;                                           offset: 0
-                                                                 
-                      ;                                           on: Mortality
-                      ;                                           due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
-                      ;                                           ))
-                       
                         ;Costs
                         (aggregate.sum      name: TotalCapexOfMeasures      (capital-cost))
                         (aggregate.mean     name: MeanCapexOfMeasures       (capital-cost) )
-                
                         ;Misc
                         (aggregate.sum  name: SumFloorArea                  (house.total-floor-area))
                         (aggregate.mean name: MeanFloorArea                 (house.total-floor-area))
-                       
                        ;Gross Space heating
-                       (aggregate.sum  name: SumSpaceHeatDemand            (house.energy-calculation-step SpaceHeating)  )
+                       (aggregate.sum  name: SumSpaceHeatDemand                     (house.energy-calculation-step SpaceHeating)  )
                        (aggregate.sum  name: SumPrimarySpaceHeatGASEnergy           (house.energy-use by-service: PrimarySpaceHeating by-fuel: MainsGas)  )
                        (aggregate.sum  name: SumPrimarySpaceHeatLPGEnergy           (+ (house.energy-use by-service: PrimarySpaceHeating by-fuel: BulkLPG) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
@@ -261,14 +238,13 @@
                        (aggregate.mean  name: MeanLowEnergyRatioLighting            (house.lighting-proportion A++ )    )
                        
                        ;DHW again, the leftovers
-                       (aggregate.sum  name: SumDHWDemand            (house.energy-use by-service: WaterHeating )  )
-                      
-                       (aggregate.sum  name: SumDHWLPGEnergy           (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
+                       (aggregate.sum  name: SumDHWDemand                           (house.energy-use by-service: WaterHeating)  )
+                       (aggregate.sum  name: SumDHWEnergy                           (house.energy-calculation-step WaterHeating_EnergyContent)  )
+                       (aggregate.sum  name: SumDHWLPGEnergy                        (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
                        (aggregate.sum  name: SumSolarThermalDHWEnergy               (house.energy-use by-fuel:Photons by-service: WaterHeating ))
                        )
 )
-
             (def-report StandardAggregates_Extreme
                 record-changes: False 
                (column name: HouseEnergyUse                   value: (house.energy-use)                                 summary: sum  )
@@ -286,7 +262,6 @@
                (column name: CountOfHP_pseudo value: (all (house.has-central-heating) (house.main-heating-fuel-is Electricity) (> (house.heating-efficiency of: PrimarySpaceHeating) 2)) summary: count)
                (column name: SumBuildingPeakHeatDemand value: (house.peak-load internal-temperature: 21 external-temperature: -2 ) summary: sum)
                (column name: MeanInternalTemp                 value:(house.mean-internal-temperature)                   summary: mean)
-                  
                 ;added from Domestic Energy FactFile 11/01/20
                (column name: PopulationPeople                 value: (house.number-of-occupants)                        summary: sum)
                (column name: SpaceheatingEnergy               value: (house.energy-use by-service: SpaceHeating)        summary: sum)
@@ -294,23 +269,18 @@
                (column name: CavityWallHouses value: (house.any-wall has-construction: AnyCavity) summary: count  )
                (column name: CavityWallHouses_With_CavityWallIns value: (house.any-wall has-cavity-insulation: true) summary: count  )
                (column name: CavityWallHouses_WithOut_CavityWallIns value: (house.any-wall has-construction: AnyCavity has-cavity-insulation: false) summary: count  )
-            
-            (column name: SolidWallHouses value: (house.any-wall has-construction: AnySolid) summary: count)
-            (column name: SolidWallHouses_With_InternalIns value: (house.any-wall has-construction: AnySolid has-internal-insulation: true) summary: count  )
+               (column name: SolidWallHouses value: (house.any-wall has-construction: AnySolid) summary: count)
+               (column name: SolidWallHouses_With_InternalIns value: (house.any-wall has-construction: AnySolid has-internal-insulation: true) summary: count  )
             (column name: SolidWallHouses_WithOut_InternalIns value: (house.any-wall has-construction: AnySolid has-internal-insulation: false) summary: count  )
-            
             (column name: MeanWallHeatLossCoeff  value:(house.energy-calculation-step HeatLossCoefficient_ExternalWall)             summary: mean)
             (column name: MeanRoofHeatLossCoeff  value:(house.energy-calculation-step HeatLossCoefficient_Roof)                     summary: mean)
             (column name: MeanFloorHeatLossCoeff value:(house.energy-calculation-step HeatLossCoefficient_GroundFloor)              summary: mean)
             (column name: MeanTotalHeatLossCoeff value:(house.energy-calculation-step HeatTransferCoefficient)                      summary: mean)
             (column name: MeanTotalHeatLossParam value:(house.energy-calculation-step HeatLossParameter)                            summary: mean)
             (column name: TotalHeatLossParam     value:(house.energy-calculation-step HeatLossParameter)                            summary: sum)
-            
             (column  name: MeanTotalEnergyIntensity_perM2       value: (/ house.energy-use  house.total-floor-area )                                    summary: mean)
             (column  name: MeanSpaceHeatEnergyIntensity_perM2   value: (/ (house.energy-use by-service: PrimarySpaceHeating)  house.total-floor-area )  summary: mean)
-            
             (column name: MeanSAPrating value: (sap/score) summary: mean)
-                  
             (column  name: SolidWallHouses_With_ExternalIns     value: (house.any-wall has-construction: AnySolid has-external-insulation:  true)   summary: count  )
             (column  name: SolidWallHouses_WithOut_ExternalIns  value: (house.any-wall has-construction: AnySolid has-external-insulation: false)   summary: count)
                   
@@ -341,17 +311,6 @@
              (column name: ACH value: (house.air-change-rate) summary: mean)
              (column name: VentilationHeatLoss value: (house.energy-calculation-step VentilationHeatLoss)  summary: mean) 
                 
-                ;Health  
-             ;   (column name: health-sit value: (house.sit)                 )
-             ;   (column name: health-sit-rebate value: (house.sit-rebate rebate: 500 temperature: 18))
-             ;   (column name: health-impact-mortality value: (health-impact-of
-              ;                                                   horizon: 10
-             ;                                                    offset: 0
-                                                                 
-              ;                                                   on: Mortality
-              ;                                                   due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
-              ;                                                   ) summary:mean
-              ;          )
                 ;Costs
                 (column name: TotalCapexOfMeasures value:(capital-cost) summary: sum)
                 (column name: MeanCapexOfMeasures value: (capital-cost) summary: mean)
@@ -506,7 +465,7 @@
                     (measure.adjust-airchange-devices adjustment: 0 device-type: Vents) 
                     (action.set-thermal-bridging-factor 0.15)                           ; acc. Part La Secton 3.10 'Thermal Bridges'
                    ; (measure.install-draught-proofing proportion: 1)
-                    (measure.install-glazing frame-type: uPVC insulation-type:Argon   u-value: 2.0 glazing-type: triple) ; Uvalue acc. Part La Secton 2.35 Table 2 'Limiting Fabric parameters'
+                    (measure.install-glazing frame-type: uPVC insulation-type:Argon   u-value: 1.0 glazing-type: triple) ; Uvalue acc. Part La Secton 2.35 Table 2 'Limiting Fabric parameters'
             ; SAP default U values: 
             ; triple glazing = 1.8 (window) 2.0 (roof window)
             ; double glazing = 2.4 (window) 2.6 (roof window)
@@ -566,8 +525,6 @@
                (measure.heating-control type: TimeTemperatureZoneControl)
                (measure.heating-control type: ThermostaticRadiatorValve)
             )
-
-
         
         ; ONLY or those houses which NHM cant install heat pumps (should be small)
             ; install hybrids boilers to all newly build homes which are on gas
@@ -583,9 +540,7 @@
                       (measure.heating-control type: TimeTemperatureZoneControl)
                       (measure.heating-control type: ThermostaticRadiatorValve)
                   )
-
         ;Solar Thermal in NewBuild
-
                (apply name: SolarThermal_NewBuild
                (measure.solar-dhw)
                to: (sample 0.5
@@ -749,7 +704,6 @@
                      )
                 )
               
-
               (apply name:VentilationRetrofit 
                      (measure.adjust-airchange-devices adjustment: 0 device-type: Vents)
                      (measure.adjust-airchange-devices adjustment: 0 device-type: Fans)
@@ -760,16 +714,13 @@
                 )
                (apply name: FabricRetrofit
                 ; SET Fabric retrofit actions properties
-                     
-                    ;(action.set-wall-construction wall-type: TimberFrame)
-                    ;(action.set-wall-u   u-value: 0.2)
+
                     (measure.wall-insulation type: Cavity suitable-construction:AnyCavity resistance: 0.05 thickness: 100)
                     (measure.wall-insulation type: External resistance: 0.03 suitable-construction: AnySolid thickness: 150)
                     (measure.wall-insulation type: Internal resistance: 0.015 suitable-construction: GraniteOrWhinstone thickness: 10)
                     (measure.wall-insulation type: Internal resistance: 0.015 suitable-construction: Sandstone thickness: 10)
                     (measure.wall-insulation type: Internal resistance: 0.015 suitable-construction: Cob thickness: 10)
                     (measure.floor-insulation u-value: 0.1 thickness:100)
-                
                     (measure.loft-insulation resistance: 0.044 thickness: 400)
                      (house.flag FabricRetrofit)
                   to: (house.flags-match RetroFitCohortFlag
@@ -777,7 +728,7 @@
                   )
               
                (apply name: GlazingRetrofit
-                     ; Glazing retrofit, ------should be changed to include different glazing options by age of building
+                     ; Glazing retrofit, ------
                      (measure.install-glazing frame-type: uPVC insulation-type:ArgonLowESoftCoat   u-value: 1.8 glazing-type: Triple)
                      (house.flag GlazingRetrofit)
                   to: (house.flags-match RetroFitCohortFlag
@@ -799,14 +750,13 @@
                )
               
                       ; Solar Thermal in RetrofitBuild
-                      ; PV considered at system level through UKTIMES
+                      ; PV considered at system level 
                     (apply name: SolarThermal_Retrofit
                (measure.solar-dhw) 
                     to: (sample RetrofitSolarThermalAmbition (filter (house.buildyear-is below: 2019)
                                  (all-houses)))
                )
-              
-              
+
               (apply name: EcoSetPoint_BehaviouralChange_Retro
                      ;Heat demand reduction through convincing occupiers to reduce thermostat set point from 21C to 18C (set in global parameters at top of scenario)
                      ; action is applied to existing houses only. New houses are treated separately
@@ -874,14 +824,8 @@
                      )
                 )
               
-                     
-              
+
         ;;GLOBAL REPORTS
-              ;GENERAL measures report, predefined in NHM
-              ;(apply
-              ;    name:InstallationsReport 
-              ;    send-to-report #InstallationsReport )
-              
               ; GENERAL aggregation Housing Stock tracking
               (aggregate name: HousingStockTracker_Extreme
                     (aggregate.count name:TotalPopulation)
@@ -900,7 +844,6 @@
                   capture: [(aggregate.sum (house.energy-use))]
                                    action.do-nothing)
                 )
-
               
         ; AGGREGATE stats for total power needed to provide GAS and ELEC year on year
         (aggregate
@@ -976,32 +919,10 @@
                  (AggregateTemplates/EmbodiedCarbonStatsExtreme) 
                   )
               
-              
-          ;  name: ALL-build-stats-dividedby-form
-          ;  over: (all-houses)
-          ;  divide-by: (house.built-form)
-              
-        ; AGGREGATE COUNT and PROPERTIES of ALL buildings, divided by Wall Type
-            ;name: ALL-build-stats-dividedby-WallType
-            ;over: (all-houses)
-            ;divide-by: (house.is-suitable-for (measure.wall-insulation suitable-construction: AnyCavity thickness:10)  )
-        
-         ; AGGREGATE COUNT and PROPERTIES of ALL buildings  divided by the Morphology (type of location, village, Urban etc....)
-            ;name: ALL-build-stats-dividedby-Morphology
-            ;over: (all-houses)
-            ;divide-by: (house.morphology )
-              
-         ; AGGREGATE COUNT and PROPERTIES of ALL buildings  divided by the heating fuel 
-            ;name: ALL-build-stats-dividedby-fuel
-            ;over: (all-houses)
-            ;divide-by: (house.heating-fuel)
-              
-              
               )
               
     ;REPEAT annual aggregates and reporting for CHANGES to housing stock (sits outside the previous 'on.date(regulary))
-   
- 
+
      (on.change include-startup: true 
               (aggregate name: HousingStockChangeTracker_Extreme
                     (aggregate.count name:TotalPopulation)

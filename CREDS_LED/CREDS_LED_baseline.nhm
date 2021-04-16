@@ -225,29 +225,12 @@
                         (aggregate.sum  name: SumHealth-sit                                     (house.sit))
                         (aggregate.mean name: MeanHealth-sit-rebate                             (house.sit-rebate rebate: 500 temperature: 18))
                         (aggregate.sum  name: SumHealth-sit-reb                                 (house.sit-rebate rebate: 500 temperature: 18))
-                      ;  (aggregate.mean name: MeanHealth-impact-mortality  (health-impact-of
-                      ;                                           horizon: 10
-                      ;                                           offset: 0
-                                                                 
-                      ;                                           on: Mortality
-                       ;                                          due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
-                      ;                                           ))
-                      ;  (aggregate.sum name: SumHealth-impact-mortality  (health-impact-of
-                      ;                                           horizon: 10
-                      ;                                           offset: 0
-                                                                 
-                      ;                                           on: Mortality
-                      ;                                           due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
-                      ;                                           ))
-                       
                         ;Costs
                         (aggregate.sum      name: TotalCapexOfMeasures      (capital-cost))
                         (aggregate.mean     name: MeanCapexOfMeasures       (capital-cost) )
-                
                         ;Misc
                         (aggregate.sum  name: SumFloorArea                  (house.total-floor-area))
                         (aggregate.mean name: MeanFloorArea                 (house.total-floor-area))
-                       
                        ;Gross Space heating
                        (aggregate.sum  name: SumSpaceHeatDemand            (house.energy-calculation-step SpaceHeating)  )
                        (aggregate.sum  name: SumPrimarySpaceHeatGASEnergy           (house.energy-use by-service: PrimarySpaceHeating by-fuel: MainsGas)  )
@@ -265,14 +248,13 @@
                        
                        ;DHW again, the leftovers
                        (aggregate.sum  name: SumDHWDemand                           (house.energy-use by-service: WaterHeating)  )
-                      
+                       (aggregate.sum  name: SumDHWEnergy                           (house.energy-calculation-step WaterHeating_EnergyContent)  )
                        (aggregate.sum  name: SumDHWLPGEnergy                        (+ (house.energy-use by-service: WaterHeating by-fuel: BulkLPG) (house.energy-use by-service: WaterHeating by-fuel: BottledLPG)) )
                        (aggregate.sum  name: SumPrimarySpaceHeatBioMassEnergy       (+ (house.energy-use by-service: WaterHeating by-fuel: BiomassPellets) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWood) (house.energy-use by-service: PrimarySpaceHeating by-fuel: BiomassWoodchip)) )
                        (aggregate.sum  name: SumSolarThermalDHWEnergy               (house.energy-use by-fuel:Photons by-service: WaterHeating ))
                        )
 )
-    
-    
+
         (def-report StandardAggregates_Baseline
                 record-changes: False 
                (column name: HouseEnergyUse                   value: (house.energy-use)                                 summary: sum  )
@@ -339,23 +321,11 @@
                 ;Population and occupancy
             (column  name: SumPeoplePopulation value: (house.number-of-occupants) summary:sum)
             (column  name: MeanOccupancy value: (house.number-of-occupants) summary:mean)
-                ;Materials
                 
                 ;Ventilation
              (column name: ACH value: (house.air-change-rate) summary: mean)
              (column name: VentilationHeatLoss value: (house.energy-calculation-step VentilationHeatLoss)  summary: mean) 
                 
-                ;Health  
-             ;   (column name: health-sit value: (house.sit)                 )
-             ;   (column name: health-sit-rebate value: (house.sit-rebate rebate: 500 temperature: 18))
-             ;   (column name: health-impact-mortality value: (health-impact-of
-              ;                                                   horizon: 10
-             ;                                                    offset: 0
-                                                                 
-              ;                                                   on: Mortality
-              ;                                                   due-to: [WCaV, CP, CaV, LC, MI, WCV, WMI, Asthma, CMD]
-              ;                                                   ) summary:mean
-              ;          )
                 ;Costs
                 (column name: TotalCapexOfMeasures value:(capital-cost) summary: sum)
                 (column name: MeanCapexOfMeasures value: (capital-cost) summary: mean)
@@ -712,8 +682,6 @@
                                    capture: [(aggregate.sum (house.energy-use))]
                                    action.do-nothing)
                   )
-   
-
               
               ; AGGREGATE stats for total power needed to provide GAS and ELEC year on year
               (aggregate
